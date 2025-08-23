@@ -5,8 +5,17 @@ import { DOWNLOAD_CHANNELS } from '@/shared/constants/channels';
 import { wrapHandler, validateRequired } from '../utils/error-handler';
 import { broadcast } from '../utils/performance';
 import { RepositoryFactory } from '../../db/repositories';
+import type { TaskRepository } from '../../db/repositories/task.repository';
 
-const taskRepo = RepositoryFactory.createTaskRepository();
+// Lazy initialization to avoid issues during testing
+let taskRepo: TaskRepository | null = null;
+
+function getTaskRepo(): TaskRepository {
+  if (!taskRepo) {
+    taskRepo = RepositoryFactory.createTaskRepository();
+  }
+  return taskRepo;
+}
 
 // Helper function for safe JSON parsing
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -24,7 +33,7 @@ export const downloadHandlers = [
     channel: DOWNLOAD_CHANNELS.START,
     handler: wrapHandler(async (_event: IpcMainInvokeEvent, spec: DownloadSpec): Promise<DownloadStartResponse> => {
       validateRequired({ spec }, ['spec']);
-      const id = await taskRepo.create(spec);
+      const id = await getTaskRepo().create(spec);
       
       // Emit start event
       broadcast(DOWNLOAD_CHANNELS.ON_STARTED, { taskId: id });
@@ -37,7 +46,7 @@ export const downloadHandlers = [
     channel: DOWNLOAD_CHANNELS.PAUSE,
     handler: wrapHandler(async (_event: IpcMainInvokeEvent, taskId: string): Promise<void> => {
       validateRequired({ taskId }, ['taskId']);
-      await taskRepo.pause(taskId);
+      await getTaskRepo().pause(taskId);
       
       // Emit pause event
       broadcast(DOWNLOAD_CHANNELS.ON_PAUSED, { taskId });
@@ -49,7 +58,7 @@ export const downloadHandlers = [
     channel: DOWNLOAD_CHANNELS.RESUME,
     handler: wrapHandler(async (_event: IpcMainInvokeEvent, taskId: string): Promise<void> => {
       validateRequired({ taskId }, ['taskId']);
-      await taskRepo.resume(taskId);
+      await getTaskRepo().resume(taskId);
       
       // Emit resume event
       broadcast(DOWNLOAD_CHANNELS.ON_RESUMED, { taskId });
@@ -61,7 +70,7 @@ export const downloadHandlers = [
     channel: DOWNLOAD_CHANNELS.CANCEL,
     handler: wrapHandler(async (_event: IpcMainInvokeEvent, taskId: string): Promise<void> => {
       validateRequired({ taskId }, ['taskId']);
-      await taskRepo.cancel(taskId);
+      await getTaskRepo().cancel(taskId);
       
       // Emit cancel event
       broadcast(DOWNLOAD_CHANNELS.ON_CANCELED, { taskId });
@@ -73,7 +82,7 @@ export const downloadHandlers = [
     channel: DOWNLOAD_CHANNELS.RETRY,
     handler: wrapHandler(async (_event: IpcMainInvokeEvent, taskId: string): Promise<void> => {
       validateRequired({ taskId }, ['taskId']);
-      await taskRepo.retry(taskId);
+      await getTaskRepo().retry(taskId);
       
       // Emit start event
       broadcast(DOWNLOAD_CHANNELS.ON_STARTED, { taskId });
@@ -84,7 +93,7 @@ export const downloadHandlers = [
   {
     channel: DOWNLOAD_CHANNELS.LIST_TASKS,
     handler: async (_event: IpcMainInvokeEvent): Promise<DownloadTaskDTO[]> => {
-      const tasks = await taskRepo.getAll();
+      const tasks = await getTaskRepo().getAll();
       // Convert to DTOs
       return tasks.map(task => ({
         id: task.id,

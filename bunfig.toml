@@ -1,0 +1,26 @@
+# Bun configuration for Video Downloader
+
+# Test runner configuration
+[test]
+# Test file patterns - use specific extensions
+preload = ["./src/test/setup.ts"]
+# Only run .bun.test.ts files with bun test
+pattern = "**/*.bun.test.{ts,tsx}"
+# Exclude Vitest test files
+exclude = ["**/*.vitest.test.ts", "**/*.spec.ts", "node_modules"]
+
+# Coverage settings
+coverage = true
+coverageThreshold = 80
+
+# Timeout for tests (ms)
+timeout = 5000
+
+# Install settings
+[install]
+# Save exact versions
+exact = true
+
+# Dev settings
+[dev]
+port = 3000
