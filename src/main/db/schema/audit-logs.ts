@@ -3,7 +3,7 @@ import { sql } from 'drizzle-orm';
 
 export const auditLogs = sqliteTable('audit_logs', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  timestamp: integer('timestamp').notNull().default(sql`(strftime('%s','now'))`),
+  timestamp: integer('timestamp').notNull().default(sql`(unixepoch())`),
   level: text('level', { 
     enum: ['debug', 'info', 'warn', 'error'] 
   }).notNull(),

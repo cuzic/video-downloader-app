@@ -1,56 +1,67 @@
 import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
 
+/**
+ * Tasks table schema for storing download tasks
+ */
 export const tasks = sqliteTable('tasks', {
   // Primary key
-  id: text('id').primaryKey(),  // UUID v4
+  id: text('id').primaryKey(),
   
-  // Basic information
+  // URL and media information
   url: text('url').notNull(),
   mediaType: text('media_type', { 
     enum: ['hls', 'dash', 'file'] 
   }).notNull(),
+  
+  // File information
   filename: text('filename'),
-  saveDir: text('save_dir').notNull(),
-  outputPath: text('output_path'),
+  saveDir: text('save_dir'),
+  fileSize: integer('file_size'),
   
-  // Status
-  status: text('status', { 
-    enum: ['queued', 'running', 'paused', 'completed', 'error', 'canceled'] 
+  // Task status
+  status: text('status', {
+    enum: ['queued', 'running', 'paused', 'completed', 'failed', 'canceled', 'error']
   }).notNull().default('queued'),
-  priority: integer('priority').notNull().default(0),
   
-  // Progress
-  downloadedBytes: integer('downloaded_bytes').notNull().default(0),
+  // Progress tracking
+  progress: real('progress').default(0),
+  percent: real('percent').default(0),
+  speedBps: integer('speed_bps'),
+  downloadedBytes: integer('downloaded_bytes').default(0),
   totalBytes: integer('total_bytes'),
-  speedBps: real('speed_bps'),  // Bytes per second
-  percent: real('percent'),      // 0-100
-  etaMs: integer('eta_ms'),      // Estimated time in milliseconds
+  etaMs: integer('eta_ms'),
   
-  // Error information
+  // Error handling
+  error: text('error'),
   errorCode: text('error_code'),
   errorMessage: text('error_message'),
-  errorDetails: text('error_details'),  // JSON string
+  errorDetails: text('error_details'),
   retryCount: integer('retry_count').notNull().default(0),
   
-  // Metadata
-  pageUrl: text('page_url'),
-  pageTitle: text('page_title'),
-  thumbnailUrl: text('thumbnail_url'),
-  durationSec: real('duration_sec'),
-  headers: text('headers'),        // JSON string
-  variant: text('variant'),        // JSON string (VideoVariant)
-  qualityRule: text('quality_rule'), // JSON string (CustomQualityRule)
-  metadata: text('metadata'),      // JSON string (arbitrary metadata)
+  // Request configuration
+  headers: text('headers'),
+  variant: text('variant'),
+  qualityRule: text('quality_rule'),
   
-  // Timestamps (UNIX seconds)
-  createdAt: integer('created_at').notNull().default(sql`(strftime('%s','now'))`),
-  startedAt: integer('started_at'),
-  pausedAt: integer('paused_at'),
-  completedAt: integer('completed_at'),
-  updatedAt: integer('updated_at').notNull().default(sql`(strftime('%s','now'))`),
+  // Task priority
+  priority: integer('priority').notNull().default(0),
+  
+  // Metadata storage (JSON)
+  metadata: text('metadata', { mode: 'json' }),
+  
+  // Timestamps (stored as UNIX timestamps in seconds)
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  startedAt: integer('started_at', { mode: 'timestamp' }),
+  pausedAt: integer('paused_at', { mode: 'timestamp' }),
+  completedAt: integer('completed_at', { mode: 'timestamp' }),
 });
 
-// TypeScript type inference
+// Type exports for TypeScript
 export type Task = typeof tasks.$inferSelect;
 export type NewTask = typeof tasks.$inferInsert;

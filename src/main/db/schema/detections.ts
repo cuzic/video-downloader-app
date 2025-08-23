@@ -17,8 +17,8 @@ export const detections = sqliteTable('detections', {
   skipReason: text('skip_reason', {
     enum: ['drm', '403', 'cors', 'mime-mismatch', 'widevine-hint', 'live']
   }),
-  detectedAt: integer('detected_at').notNull().default(sql`(strftime('%s','now'))`),
-  lastSeenAt: integer('last_seen_at').notNull().default(sql`(strftime('%s','now'))`),
+  detectedAt: integer('detected_at').notNull().default(sql`(unixepoch())`),
+  lastSeenAt: integer('last_seen_at').notNull().default(sql`(unixepoch())`),
   downloadCount: integer('download_count').notNull().default(0),
   autoDelete: integer('auto_delete').notNull().default(0),  // 0/1 as boolean
 });

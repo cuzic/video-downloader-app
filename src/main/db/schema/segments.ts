@@ -23,7 +23,7 @@ export const segments = sqliteTable('segments', {
   errorMessage: text('error_message'),
   
   // Timestamps
-  createdAt: integer('created_at').notNull().default(sql`(strftime('%s','now'))`),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
   downloadedAt: integer('downloaded_at'),
 }, (table) => {
   return {
