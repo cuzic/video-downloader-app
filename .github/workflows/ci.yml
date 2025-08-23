@@ -62,7 +62,7 @@ jobs:
         
       - name: Upload coverage
         if: matrix.os == 'ubuntu-latest'
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           files: ./coverage/lcov.info
           flags: unittests
@@ -106,7 +106,7 @@ jobs:
         run: mise run build
         
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-${{ matrix.os }}
           path: dist/
@@ -147,7 +147,7 @@ jobs:
         run: mise run install
         
       - name: Download build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build-${{ matrix.os }}
           path: dist/
@@ -160,7 +160,7 @@ jobs:
         
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: playwright-report-${{ matrix.os }}
           path: playwright-report/
