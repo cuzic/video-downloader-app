@@ -6,7 +6,29 @@
   "author": "Video Downloader Team",
   "license": "MIT",
   "private": true,
-  "type": "module",
+  "engines": {
+    "node": ">=18.0.0",
+    "bun": ">=1.0.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build && electron-builder",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint . --ext .ts,.tsx",
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit",
+    "electron": "electron .",
+    "electron:dev": "electron . --dev",
+    "dist": "electron-builder",
+    "postinstall": "electron-builder install-app-deps",
+    "db:generate": "drizzle-kit generate:sqlite",
+    "db:push": "drizzle-kit push:sqlite",
+    "db:studio": "drizzle-kit studio",
+    "prepare": "husky"
+  },
   "dependencies": {
     "better-sqlite3": "^9.2.2",
     "drizzle-orm": "^0.29.3",
@@ -25,7 +47,6 @@
     "@typescript-eslint/eslint-plugin": "^6.17.0",
     "@typescript-eslint/parser": "^6.17.0",
     "@vitejs/plugin-react": "^4.2.1",
-    "concurrently": "^8.2.2",
     "drizzle-kit": "^0.20.10",
     "electron": "^28.1.1",
     "electron-builder": "^24.9.1",
@@ -35,12 +56,12 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.5",
-    "playwright": "^1.40.1",
     "prettier": "^3.1.1",
     "typescript": "^5.3.3",
     "vite": "^5.0.10",
     "vite-plugin-electron": "^0.15.5",
-    "vite-plugin-electron-renderer": "^0.14.5"
+    "vite-plugin-electron-renderer": "^0.14.5",
+    "vitest": "^1.1.1"
   },
   "build": {
     "appId": "com.videodownloader.app",
