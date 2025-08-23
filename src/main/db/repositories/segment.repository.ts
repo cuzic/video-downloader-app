@@ -27,7 +27,7 @@ export class SegmentRepository {
     
     if (errorMessage) {
       updates.errorMessage = errorMessage;
-      updates.retryCount = sql`${segments.retryCount} + 1`;
+      updates.retryCount = sql`${segments.retryCount} + 1` as any;
     }
     
     await db.update(segments)

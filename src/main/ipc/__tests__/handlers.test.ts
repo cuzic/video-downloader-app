@@ -79,7 +79,7 @@ describe('Download Handlers', () => {
     it('should create a new download task', async () => {
       const spec: DownloadSpec = {
         url: 'https://example.com/video.mp4',
-        type: 'video',
+        type: 'file' as any,
         saveDir: '/downloads',
       };
 

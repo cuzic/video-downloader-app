@@ -4,7 +4,7 @@ import { eq, inArray, desc, and, sql } from 'drizzle-orm';
 import type { Task } from '../schema/tasks';
 import type { DownloadSpec, DownloadProgress } from '@/shared/types';
 import { validateDownloadSpec } from '../validation';
-import { auditLogRepo } from './audit-log.repository';
+import { AuditLogRepository } from './audit-log.repository';
 
 export class TaskCreateError extends Error {
   constructor(message: string, public cause?: any) {
@@ -22,9 +22,11 @@ export class TaskUpdateError extends Error {
 
 export class TaskRepository {
   private defaultSaveDir?: string;
+  private auditLogRepo: AuditLogRepository;
 
   constructor(defaultSaveDir?: string) {
     this.defaultSaveDir = defaultSaveDir;
+    this.auditLogRepo = new AuditLogRepository();
   }
 
   async create(spec: DownloadSpec): Promise<string> {
@@ -75,11 +77,11 @@ export class TaskRepository {
           speedBps: progress.speedBps,
           percent: progress.percent,
           etaMs: progress.etaMs,
-          updatedAt: Math.floor(Date.now() / 1000),
+          updatedAt: new Date(),
         })
         .where(eq(tasks.id, taskId));
     } catch (error) {
-      await auditLogRepo.error('task', 'progress_update_failed', error, { taskId, progress });
+      await this.auditLogRepo.error('task', 'progress_update_failed', error, { taskId, progress });
       throw new TaskUpdateError('Failed to update task progress', error);
     }
   }
@@ -91,11 +93,11 @@ export class TaskRepository {
   ): Promise<void> {
     const updates: Partial<Task> = { 
       status,
-      updatedAt: Math.floor(Date.now() / 1000),
+      updatedAt: new Date(),
     };
 
     // Update timestamps based on status
-    const now = Math.floor(Date.now() / 1000);
+    const now = new Date();
     switch (status) {
       case 'running':
         updates.startedAt = now;
@@ -172,7 +174,7 @@ export class TaskRepository {
         errorMessage: null,
         errorDetails: null,
         retryCount: sql`${tasks.retryCount} + 1`,
-        updatedAt: Math.floor(Date.now() / 1000),
+        updatedAt: new Date(),
       })
       .where(eq(tasks.id, taskId));
   }
