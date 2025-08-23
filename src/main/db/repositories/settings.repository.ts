@@ -1,3 +1,4 @@
+import { app } from 'electron';
 import { db } from '../client';
 import { settings } from '../schema';
 import { eq } from 'drizzle-orm';
@@ -123,6 +124,3 @@ export class SettingsRepository {
     await this.setDefaults(defaults);
   }
 }
-
-// Import app from electron only when needed
-import { app } from 'electron';
