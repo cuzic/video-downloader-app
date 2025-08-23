@@ -60,9 +60,9 @@ test.describe('Application Launch', () => {
 test.describe('IPC Communication', () => {
   test('should handle IPC messages', async () => {
     // Example: Test IPC communication
-    const result = await electronApp.evaluate(async ({ ipcMain }) => {
+    const result = await electronApp.evaluate(async ({ ipcMain }: any) => {
       return new Promise((resolve) => {
-        ipcMain.once('test-message', (event, arg) => {
+        ipcMain.once('test-message', (_event: any, arg: any) => {
           resolve(arg);
         });
         
@@ -79,7 +79,7 @@ test.describe('IPC Communication', () => {
 
 test.describe('Menu Actions', () => {
   test('should have application menu', async () => {
-    const menuTemplate = await electronApp.evaluate(async ({ Menu }) => {
+    const menuTemplate = await electronApp.evaluate(async ({ Menu }: any) => {
       const menu = Menu.getApplicationMenu();
       return menu ? true : false;
     });
