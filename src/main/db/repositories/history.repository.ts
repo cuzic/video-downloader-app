@@ -1,6 +1,6 @@
 import { db } from '../client';
 import { history } from '../schema';
-import { eq, desc, and, gte } from 'drizzle-orm';
+import { eq, desc, and, gte, lte } from 'drizzle-orm';
 import type { HistoryEntry, NewHistoryEntry } from '../schema/history';
 
 export class HistoryRepository {
@@ -24,7 +24,7 @@ export class HistoryRepository {
     return db.select()
       .from(history)
       .where(eq(history.taskId, taskId))
-      .orderBy(history.createdAt);
+      .orderBy(history.createdAt) as Promise<HistoryEntry[]>;
   }
 
   async getRecentEvents(limit = 100): Promise<HistoryEntry[]> {
@@ -53,7 +53,7 @@ export class HistoryRepository {
       .from(history)
       .where(and(
         gte(history.createdAt, new Date(startTime * 1000)),
-        gte(new Date(endTime * 1000), history.createdAt)
+        lte(history.createdAt, new Date(endTime * 1000))
       ))
       .orderBy(history.createdAt);
   }
@@ -62,7 +62,7 @@ export class HistoryRepository {
     const cutoff = new Date(Date.now() - (daysOld * 24 * 60 * 60 * 1000));
     
     const result = await db.delete(history)
-      .where(gte(cutoff, history.createdAt));
+      .where(lte(history.createdAt, cutoff));
     
     return result.changes;
   }

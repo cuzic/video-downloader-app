@@ -2,8 +2,13 @@ import { contextBridge, ipcRenderer } from 'electron';
 import type { 
   DownloadSpec, 
   DownloadTaskDTO, 
-  AppSettings 
+  AppSettings,
 } from '@/shared/types';
+import {
+  DOWNLOAD_CHANNELS,
+  SETTINGS_CHANNELS,
+  SYSTEM_CHANNELS,
+} from '@/shared/constants/channels';
 import {
   downloadSpecSchema,
   taskIdSchema,

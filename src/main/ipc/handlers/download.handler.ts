@@ -1,48 +1,78 @@
-import { IpcMainInvokeEvent } from 'electron';
+import { IpcMainInvokeEvent, BrowserWindow } from 'electron';
 import { TaskRepository } from '../../db/repositories/task.repository';
-import type { DownloadSpec, DownloadTaskDTO } from '@/shared/types';
+import type { DownloadSpec, DownloadTaskDTO, DownloadTask } from '@/shared/types';
+import type { DownloadStartResponse, DownloadListResponse } from '@/shared/types/ipc.types';
+import { DOWNLOAD_CHANNELS } from '@/shared/constants/channels';
+import { wrapHandler, validateRequired } from '../utils/error-handler';
+import { ProgressReporter, broadcast } from '../utils/performance';
+import { RepositoryFactory } from '../../db/repositories';
 
-const taskRepo = new TaskRepository();
+const taskRepo = RepositoryFactory.createTaskRepository();
 
 export const downloadHandlers = [
   {
-    channel: 'app:download:start',
-    handler: async (_event: IpcMainInvokeEvent, spec: DownloadSpec): Promise<{ id: string }> => {
+    channel: DOWNLOAD_CHANNELS.START,
+    handler: wrapHandler(async (_event: IpcMainInvokeEvent, spec: DownloadSpec): Promise<DownloadStartResponse> => {
+      validateRequired({ spec }, ['spec']);
       const id = await taskRepo.create(spec);
+      
+      // Emit start event
+      broadcast(DOWNLOAD_CHANNELS.ON_STARTED, { taskId: id });
+      
       // TODO: Start actual download process
       return { id };
-    },
+    }),
   },
   {
-    channel: 'app:download:pause',
-    handler: async (_event: IpcMainInvokeEvent, taskId: string): Promise<void> => {
+    channel: DOWNLOAD_CHANNELS.PAUSE,
+    handler: wrapHandler(async (_event: IpcMainInvokeEvent, taskId: string): Promise<void> => {
+      validateRequired({ taskId }, ['taskId']);
       await taskRepo.pause(taskId);
+      
+      // Emit pause event
+      broadcast(DOWNLOAD_CHANNELS.ON_PAUSED, { taskId });
+      
       // TODO: Pause actual download
-    },
+    }),
   },
   {
-    channel: 'app:download:resume',
-    handler: async (_event: IpcMainInvokeEvent, taskId: string): Promise<void> => {
+    channel: DOWNLOAD_CHANNELS.RESUME,
+    handler: wrapHandler(async (_event: IpcMainInvokeEvent, taskId: string): Promise<void> => {
+      validateRequired({ taskId }, ['taskId']);
       await taskRepo.resume(taskId);
+      
+      // Emit resume event
+      broadcast(DOWNLOAD_CHANNELS.ON_RESUMED, { taskId });
+      
       // TODO: Resume actual download
-    },
+    }),
   },
   {
-    channel: 'app:download:cancel',
-    handler: async (_event: IpcMainInvokeEvent, taskId: string): Promise<void> => {
+    channel: DOWNLOAD_CHANNELS.CANCEL,
+    handler: wrapHandler(async (_event: IpcMainInvokeEvent, taskId: string): Promise<void> => {
+      validateRequired({ taskId }, ['taskId']);
       await taskRepo.cancel(taskId);
+      
+      // Emit cancel event
+      broadcast(DOWNLOAD_CHANNELS.ON_CANCELED, { taskId });
+      
       // TODO: Cancel actual download
-    },
+    }),
   },
   {
-    channel: 'app:download:retry',
-    handler: async (_event: IpcMainInvokeEvent, taskId: string): Promise<void> => {
+    channel: DOWNLOAD_CHANNELS.RETRY,
+    handler: wrapHandler(async (_event: IpcMainInvokeEvent, taskId: string): Promise<void> => {
+      validateRequired({ taskId }, ['taskId']);
       await taskRepo.retry(taskId);
+      
+      // Emit start event
+      broadcast(DOWNLOAD_CHANNELS.ON_STARTED, { taskId });
+      
       // TODO: Restart download
-    },
+    }),
   },
   {
-    channel: 'app:download:list',
+    channel: DOWNLOAD_CHANNELS.LIST_TASKS,
     handler: async (_event: IpcMainInvokeEvent): Promise<DownloadTaskDTO[]> => {
       const tasks = await taskRepo.getAll();
       // Convert to DTOs

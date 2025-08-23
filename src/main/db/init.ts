@@ -1,7 +1,7 @@
 import { app } from 'electron';
 import path from 'path';
 import fs from 'fs';
-import { db, sqlite, initializeDatabase } from './client';
+import { sqlite, initializeDatabase } from './client';
 import { settingsRepo, auditLogRepo } from './repositories';
 import { dbBackup } from './backup';
 import { runMigrations } from './migrate';

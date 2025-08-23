@@ -240,7 +240,7 @@ export class DatabaseBackup {
     
     if (backups.length > 0) {
       const lastBackup = backups[0];
-      const hoursSinceLastBackup = (Date.now() - lastBackup.created.getTime()) / (1000 * 60 * 60);
+      const hoursSinceLastBackup = (Date.now() - (lastBackup?.created.getTime() || 0)) / (1000 * 60 * 60);
       
       if (hoursSinceLastBackup < intervalHours) {
         console.log(`⏰ Skipping auto-backup (last backup ${hoursSinceLastBackup.toFixed(1)}h ago)`);
@@ -335,7 +335,7 @@ export class DatabaseBackup {
       const result = db.pragma('integrity_check');
       db.close();
       
-      return result[0]?.integrity_check === 'ok';
+      return (result as any)[0]?.integrity_check === 'ok';
     } catch (error) {
       console.error('❌ Integrity check failed:', error);
       return false;
@@ -343,7 +343,7 @@ export class DatabaseBackup {
   }
 
   // Private helper methods
-  private async exportToBuffer(db: Database): Promise<Buffer> {
+  private async exportToBuffer(db: any): Promise<Buffer> {
     const tables = this.getTableNames(db);
     const data: Record<string, any[]> = {};
 
@@ -354,15 +354,8 @@ export class DatabaseBackup {
     return Buffer.from(JSON.stringify(data));
   }
 
-  private async performBackup(source: Database, target: Database): Promise<void> {
-    return new Promise((resolve, reject) => {
-      source.backup(target.name)
-        .then(() => resolve())
-        .catch(reject);
-    });
-  }
 
-  private getTableNames(db: Database): string[] {
+  private getTableNames(db: any): string[] {
     const tables = db.prepare(
       `SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'`
     ).all() as Array<{ name: string }>;
