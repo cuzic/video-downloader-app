@@ -31,12 +31,16 @@
   },
   "include": [
     "src/**/*",
-    "electron.vite.config.ts"
+    "scripts/**/*",
+    "tests/**/*"
   ],
   "exclude": [
     "node_modules",
     "dist",
     "dist-electron",
-    "out"
+    "out",
+    "docs",
+    "*.config.ts",
+    "drizzle.config.ts"
   ]
 }
