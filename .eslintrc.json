@@ -42,7 +42,8 @@
     "@typescript-eslint/consistent-type-imports": ["error", { "prefer": "type-imports" }],
     "no-console": ["warn", { "allow": ["warn", "error"] }],
     "no-control-regex": "off",
-    "import/prefer-default-export": "off"
+    "import/prefer-default-export": "off",
+    "import/no-unresolved": ["error", { "ignore": ["^bun:"] }]
   },
   "overrides": [
     {
@@ -77,6 +78,12 @@
   "settings": {
     "react": {
       "version": "detect"
+    },
+    "import/resolver": {
+      "typescript": {
+        "alwaysTryTypes": true,
+        "project": "./tsconfig.json"
+      }
     }
   }
 }
