@@ -1,0 +1,224 @@
+# mise configuration for Video Downloader
+# Tool version management and task runner
+
+[tools]
+# Runtime and language versions only
+node = "20.10.0"
+bun = "latest"
+
+[env]
+# Environment variables
+NODE_ENV = "development"
+ELECTRON_IS_DEV = "1"
+DEV_PORT = "3000"
+
+# Database
+DB_PATH = "./data/video-downloader.db"
+DB_LOG_LEVEL = "info"
+
+# Logging
+LOG_LEVEL = "debug"
+
+# Security
+ENABLE_CSP = "true"
+ALLOW_EXTERNAL_URLS = "false"
+
+# Download settings
+MAX_CONCURRENT_DOWNLOADS = "3"
+SEGMENT_RETRY_COUNT = "3"
+
+[tasks.install]
+description = "Install dependencies"
+run = "bun install"
+
+[tasks.dev]
+description = "Start development server"
+run = "bun run scripts/dev.ts"
+depends = ["install"]
+
+[tasks.build]
+description = "Build for production"
+run = "bun run scripts/build.ts"
+depends = ["clean", "typecheck"]
+
+[tasks.test]
+description = "Run all tests"
+run = "bun run scripts/test.ts"
+
+[tasks."test:watch"]
+description = "Run tests in watch mode"
+run = "bun run scripts/test.ts --watch"
+
+[tasks."test:coverage"]
+description = "Run tests with coverage"
+run = "bun run scripts/test.ts --coverage"
+
+[tasks."test:unit"]
+description = "Run unit tests only"
+run = "bun run scripts/test.ts --unit"
+
+[tasks."test:e2e"]
+description = "Run E2E tests"
+run = "bun run scripts/test.ts --e2e"
+depends = ["build"]
+
+[tasks.lint]
+description = "Run ESLint"
+run = "bunx eslint . --ext .ts,.tsx"
+
+[tasks."lint:fix"]
+description = "Run ESLint with auto-fix"
+run = "bunx eslint . --ext .ts,.tsx --fix"
+
+[tasks.format]
+description = "Format code with Prettier"
+run = "bunx prettier --write ."
+
+[tasks."format:check"]
+description = "Check code formatting"
+run = "bunx prettier --check ."
+
+[tasks.typecheck]
+description = "Run TypeScript type checking"
+run = "bunx tsc --noEmit"
+
+[tasks.check]
+description = "Run all checks (type, lint, format)"
+depends = ["typecheck", "lint", "format:check"]
+
+[tasks."db:generate"]
+description = "Generate database migrations"
+run = "bunx drizzle-kit generate:sqlite"
+
+[tasks."db:push"]
+description = "Push database changes"
+run = "bunx drizzle-kit push:sqlite"
+
+[tasks."db:studio"]
+description = "Open Drizzle Studio"
+run = "bunx drizzle-kit studio"
+
+[tasks."db:migrate"]
+description = "Run database migrations"
+run = "bun src/main/db/migrate.ts"
+depends = ["db:generate"]
+
+[tasks.clean]
+description = "Clean build artifacts"
+run = "rm -rf dist dist-electron"
+
+[tasks."clean:all"]
+description = "Clean everything including dependencies"
+run = "rm -rf dist dist-electron node_modules .bun bun.lockb"
+
+[tasks."clean:cache"]
+description = "Clean Bun cache"
+run = "rm -rf .bun ~/.bun/cache"
+
+[tasks.dist]
+description = "Package application for distribution"
+run = "bunx electron-builder"
+depends = ["build"]
+
+[tasks."dist:mac"]
+description = "Package for macOS"
+run = "bunx electron-builder --mac"
+depends = ["build"]
+
+[tasks."dist:win"]
+description = "Package for Windows"
+run = "bunx electron-builder --win"
+depends = ["build"]
+
+[tasks."dist:linux"]
+description = "Package for Linux"
+run = "bunx electron-builder --linux"
+depends = ["build"]
+
+[tasks.electron]
+description = "Run Electron (production mode)"
+run = "bunx electron ."
+depends = ["build"]
+
+[tasks."electron:dev"]
+description = "Run Electron (development mode)"
+run = "NODE_ENV=development bunx electron . --dev"
+env = { NODE_ENV = "development", ELECTRON_IS_DEV = "1" }
+
+[tasks.update]
+description = "Update dependencies"
+run = """
+bunx npm-check-updates -u
+bun install
+"""
+
+[tasks.audit]
+description = "Run security audit"
+run = "bun audit"
+
+[tasks.prepare]
+description = "Prepare Git hooks with Husky"
+run = "bunx husky"
+
+[tasks.docs]
+description = "Generate API documentation"
+run = "bunx typedoc --out docs/api src"
+
+[tasks.info]
+description = "Show project information"
+run = """
+echo "Video Downloader - Electron App"
+echo "================================"
+echo "Node: $(node --version)"
+echo "Bun: $(bun --version)"
+echo ""
+echo "Run 'mise tasks' to see all available tasks"
+"""
+
+# Task aliases for convenience
+[tasks.t]
+alias = "test"
+
+[tasks.d]
+alias = "dev"
+
+[tasks.b]
+alias = "build"
+
+[tasks.c]
+alias = "check"
+
+# Composite tasks
+[tasks.ci]
+description = "Run CI checks"
+depends = ["check", "test", "build"]
+
+[tasks.release]
+description = "Prepare a release"
+depends = ["check", "test", "build", "dist"]
+
+[tasks.setup]
+description = "Setup development environment"
+depends = ["install", "db:migrate", "prepare"]
+
+# Watch tasks
+[tasks.watch]
+description = "Watch mode for development"
+run = """
+bunx concurrently -n "main,preload,renderer" \
+  "bun build src/main/index.ts --outdir dist/main --watch" \
+  "bun build src/preload/index.ts --outdir dist/preload --watch" \
+  "bunx vite"
+"""
+
+[tasks."watch:main"]
+description = "Watch main process only"
+run = "bun build src/main/index.ts --outdir dist/main --watch"
+
+[tasks."watch:preload"]
+description = "Watch preload script only"
+run = "bun build src/preload/index.ts --outdir dist/preload --watch"
+
+[tasks."watch:renderer"]
+description = "Watch renderer process only"
+run = "bunx vite"
