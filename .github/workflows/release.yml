@@ -47,7 +47,7 @@ jobs:
       - name: Setup mise
         uses: jdx/mise-action@v2
         with:
-          version: latest
+          version: 2025.8.6
           cache: true
           
       - name: Install tools
