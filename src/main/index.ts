@@ -1,6 +1,6 @@
 import { app, BrowserWindow, shell } from 'electron';
 import path from 'path';
-import { initializeDatabase, closeDatabase } from './db/client';
+import { initDatabase, shutdownDatabase } from './db/init';
 import { registerIpcHandlers } from './ipc';
 import { applyCSP } from './security/csp';
 import { PathValidator } from './security/path-validator';
@@ -73,8 +73,8 @@ void app.whenReady().then(async () => {
     return;
   }
   
-  // Initialize database
-  await initializeDatabase();
+  // Initialize database system
+  await initDatabase();
   
   // Register IPC handlers
   registerIpcHandlers();
@@ -103,8 +103,8 @@ app.on('window-all-closed', () => {
 });
 
 // Clean up before quitting
-app.on('before-quit', () => {
-  closeDatabase();
+app.on('before-quit', async () => {
+  await shutdownDatabase();
 });
 
 // Security: Prevent new window creation and enhance security
