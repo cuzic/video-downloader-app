@@ -199,7 +199,7 @@ depends = ["check", "test", "build", "dist"]
 
 [tasks.setup]
 description = "Setup development environment"
-depends = ["install", "db:migrate", "prepare"]
+run = "bun run scripts/setup.ts"
 
 # Watch tasks
 [tasks.watch]
