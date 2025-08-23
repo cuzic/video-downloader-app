@@ -30,6 +30,7 @@ export function useTheme(): {
       return () => mediaQuery.removeEventListener('change', handler);
     } else {
       setResolvedTheme(theme);
+      return undefined;
     }
   }, [theme]);
 

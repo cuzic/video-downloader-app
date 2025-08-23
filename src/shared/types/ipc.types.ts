@@ -1,7 +1,6 @@
 import type { 
   DownloadSpec, 
   DownloadProgress, 
-  DownloadTask,
   DownloadTaskDTO,
   AppSettings,
 } from './index';
@@ -47,12 +46,20 @@ export interface IPCError {
   stack?: string;
 }
 
-// IPC Response types
-export interface IPCResponse<T = any> {
+// IPC Request/Response types
+export interface IpcRequest<T = any> {
+  channel: string;
+  data?: T;
+}
+
+export interface IpcResponse<T = any> {
   success: boolean;
   data?: T;
   error?: IPCError;
 }
+
+// Legacy alias for compatibility
+export interface IPCResponse<T = any> extends IpcResponse<T> {}
 
 // Download API types
 export interface DownloadStartResponse {
@@ -106,11 +113,11 @@ export interface ElectronAPI {
     cancel(id: string): Promise<void>;
     retry(id: string): Promise<void>;
     remove(id: string): Promise<void>;
-    getTask(id: string): Promise<DownloadTask | null>;
+    getTask(id: string): Promise<DownloadTaskDTO | null>;
     listTasks(status?: string): Promise<DownloadListResponse>;
     clearCompleted(): Promise<number>;
     onProgress(callback: EventCallback<DownloadProgress>): UnsubscribeFn;
-    onCompleted(callback: EventCallback<DownloadTask>): UnsubscribeFn;
+    onCompleted(callback: EventCallback<DownloadTaskDTO>): UnsubscribeFn;
     onError(callback: EventCallback<{ taskId: string; error: IPCError }>): UnsubscribeFn;
   };
   
