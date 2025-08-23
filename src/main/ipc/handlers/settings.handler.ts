@@ -21,7 +21,7 @@ export const settingsHandlers = [
     channel: SETTINGS_CHANNELS.GET,
     handler: wrapHandler(async (_event: IpcMainInvokeEvent, key: string): Promise<any> => {
       validateRequired({ key }, ['key']);
-      const setting = await settingsRepo.get(key);
+      const setting = await getSettingsRepo().get(key);
       return setting?.value;
     }),
   },

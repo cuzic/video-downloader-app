@@ -134,7 +134,7 @@ export const downloadHandlers = [
   {
     channel: 'app:download:get',
     handler: async (_event: IpcMainInvokeEvent, taskId: string): Promise<DownloadTaskDTO | null> => {
-      const task = await taskRepo.getById(taskId);
+      const task = await getTaskRepo().getById(taskId);
       if (!task) return null;
       
       // Convert to DTO
