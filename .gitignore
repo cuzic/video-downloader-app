@@ -7,6 +7,11 @@ node_modules/
 .bun/
 bun.lockb
 
+# Other package manager files (project uses Bun)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
 # Build outputs
 dist/
 dist-electron/
