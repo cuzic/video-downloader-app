@@ -13,7 +13,7 @@ import {
   drmDetectionSchema,
   validateInput,
   sanitizePath,
-} from '@/shared/validation';
+} from '../shared/validation';
 
 // Define the API exposed to the renderer process
 const api = {
