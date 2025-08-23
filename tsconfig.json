@@ -17,6 +17,8 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noUncheckedIndexedAccess": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
@@ -25,16 +27,20 @@
       "@shared/*": ["src/shared/*"],
       "@preload/*": ["src/preload/*"]
     },
-    "types": ["vite/client", "node"]
+    "types": ["bun", "vite/client", "node"]
   },
   "include": [
     "src/**/*",
-    "electron.vite.config.ts"
+    "scripts/**/*",
+    "tests/**/*"
   ],
   "exclude": [
     "node_modules",
     "dist",
     "dist-electron",
-    "out"
+    "out",
+    "docs",
+    "*.config.ts",
+    "drizzle.config.ts"
   ]
 }

@@ -1,0 +1,21 @@
+# Bun Workspace Configuration
+
+# Define workspace packages
+packages:
+  - "src/main"
+  - "src/renderer"
+  - "src/preload"
+  - "src/shared"
+
+# Shared dependencies that should be hoisted
+shared:
+  - "typescript"
+  - "eslint"
+  - "prettier"
+  - "@types/*"
+
+# Package-specific overrides
+overrides:
+  "electron": "28.1.1"
+  "react": "18.2.0"
+  "react-dom": "18.2.0"

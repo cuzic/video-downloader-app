@@ -1,0 +1,17 @@
+node_modules/
+dist/
+dist-electron/
+coverage/
+.bun/
+*.config.ts
+*.config.js
+docs/
+scripts/
+tests/
+drizzle.config.ts
+*.d.ts
+.github/
+.husky/
+.vscode/
+bun.lockb
+yarn.lock

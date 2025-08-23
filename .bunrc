@@ -1,0 +1,13 @@
+{
+  "install": {
+    "cache": true,
+    "frozen-lockfile": false,
+    "global-cache": true,
+    "save-dev": true,
+    "save-exact": true
+  },
+  "run": {
+    "bun": true,
+    "shell": "bash"
+  }
+}

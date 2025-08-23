@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import { app, BrowserWindow, shell } from 'electron';
 import path from 'path';
 import { initializeDatabase, closeDatabase } from './db/client';
 import { registerIpcHandlers } from './ipc';
@@ -10,7 +10,7 @@ if (require('electron-squirrel-startup')) {
 
 let mainWindow: BrowserWindow | null = null;
 
-async function createWindow(): Promise<void> {
+function createWindow(): void {
   // Create the browser window
   mainWindow = new BrowserWindow({
     width: 1280,
@@ -29,23 +29,23 @@ async function createWindow(): Promise<void> {
 
   // Load the app
   if (process.env.NODE_ENV === 'development') {
-    mainWindow.loadURL('http://localhost:5173');
+    void mainWindow.loadURL('http://localhost:5173');
     mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
+    void mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
   }
 
   // Open external links in the default browser
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith('http://') || url.startsWith('https://')) {
-      shell.openExternal(url);
+      void shell.openExternal(url);
     }
     return { action: 'deny' };
   });
 }
 
 // This method will be called when Electron has finished initialization
-app.whenReady().then(async () => {
+void app.whenReady().then(async () => {
   // Initialize database
   await initializeDatabase();
   
@@ -53,7 +53,7 @@ app.whenReady().then(async () => {
   registerIpcHandlers();
   
   // Create window
-  await createWindow();
+  createWindow();
 
   // On macOS, re-create window when dock icon is clicked
   app.on('activate', () => {
@@ -77,8 +77,9 @@ app.on('before-quit', () => {
 
 // Security: Prevent new window creation
 app.on('web-contents-created', (_, contents) => {
-  contents.on('new-window', (event) => {
-    event.preventDefault();
+  // Use setWindowOpenHandler instead of deprecated 'new-window' event
+  contents.setWindowOpenHandler(() => {
+    return { action: 'deny' };
   });
   
   // Prevent navigation to external URLs

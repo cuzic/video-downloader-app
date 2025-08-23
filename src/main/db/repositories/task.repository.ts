@@ -1,19 +1,23 @@
 import { db } from '../client';
 import { tasks } from '../schema';
 import { eq, inArray, desc, and, sql } from 'drizzle-orm';
-import type { Task, NewTask } from '../schema/tasks';
+import type { Task } from '../schema/tasks';
 import type { DownloadSpec, DownloadProgress } from '@/shared/types';
 
 export class TaskRepository {
   async create(spec: DownloadSpec): Promise<string> {
     const id = crypto.randomUUID();
     
+    // Use app's default download directory if not specified
+    const { app } = await import('electron');
+    const saveDir = spec.saveDir ?? app.getPath('downloads');
+    
     await db.insert(tasks).values({
       id,
       url: spec.url,
       mediaType: spec.type,
-      filename: spec.filename,
-      saveDir: spec.saveDir,
+      filename: spec.filename ?? null,
+      saveDir,
       headers: spec.headers ? JSON.stringify(spec.headers) : null,
       variant: spec.variant ? JSON.stringify(spec.variant) : null,
       qualityRule: spec.qualityRule ? JSON.stringify(spec.qualityRule) : null,

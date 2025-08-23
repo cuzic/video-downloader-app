@@ -1,5 +1,4 @@
 import { IpcMainInvokeEvent, app, shell } from 'electron';
-import path from 'path';
 import fs from 'fs/promises';
 
 export const systemHandlers = [
