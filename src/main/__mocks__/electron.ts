@@ -1,4 +1,6 @@
-import { vi } from 'vitest';
+/// <reference types="vitest/globals" />
+// Mock file for Electron modules
+// vi is available globally in test environment
 
 export const app = {
   getPath: vi.fn((name: string) => `/mock/path/${name}`),
