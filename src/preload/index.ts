@@ -1,9 +1,30 @@
-import { contextBridge, ipcRenderer } from 'electron';
+import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 import type { 
   DownloadSpec, 
   DownloadTaskDTO, 
-  AppSettings 
+  AppSettings,
+  DownloadTask,
+  DownloadProgress,
+  Detection,
 } from '@/shared/types';
+import type { 
+  ElectronAPI, 
+  EventCallback, 
+  UnsubscribeFn,
+  DownloadStartResponse,
+  DownloadListResponse,
+  DetectionListResponse,
+  SystemPathsResponse,
+  SystemInfoResponse,
+} from '@/shared/types/ipc.types';
+import {
+  DOWNLOAD_CHANNELS,
+  DETECTION_CHANNELS,
+  SETTINGS_CHANNELS,
+  SYSTEM_CHANNELS,
+  WINDOW_CHANNELS,
+  APP_CHANNELS,
+} from '@/shared/constants/channels';
 import {
   downloadSpecSchema,
   taskIdSchema,
