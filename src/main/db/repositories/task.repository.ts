@@ -60,10 +60,10 @@ export class TaskRepository {
         priority: validatedSpec.priority ?? 0,
       });
       
-      await auditLogRepo.logDownloadEvent(id, 'task_created', { url: validatedSpec.url });
+      await this.auditLogRepo.logDownloadEvent(id, 'task_created', { url: validatedSpec.url });
       return id;
     } catch (error) {
-      await auditLogRepo.error('task', 'creation_failed', error, spec);
+      await this.auditLogRepo.error('task', 'creation_failed', error, spec);
       throw new TaskCreateError('Failed to create task', error);
     }
   }

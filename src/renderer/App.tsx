@@ -33,8 +33,8 @@ export function App() {
   }, []);
 
   const loadTasks = async () => {
-    const taskList = await window.electronAPI.download.listTasks();
-    setTasks(taskList);
+    const response = await window.electronAPI.download.listTasks();
+    setTasks(response.tasks);
   };
 
   const handleAddDownload = async () => {

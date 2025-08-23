@@ -31,11 +31,8 @@ export const systemHandlers = [
       return {
         home: app.getPath('home'),
         downloads: app.getPath('downloads'),
-        documents: app.getPath('documents'),
-        videos: app.getPath('videos'),
         userData: app.getPath('userData'),
         temp: app.getPath('temp'),
-        appData: app.getPath('appData'),
       };
     }),
   },
@@ -98,9 +95,6 @@ export const systemHandlers = [
     handler: wrapHandler(async (_event: IpcMainInvokeEvent): Promise<SystemInfoResponse> => {
       return {
         version: app.getVersion(),
-        electron: process.versions.electron,
-        chrome: process.versions.chrome,
-        node: process.versions.node,
         platform: process.platform,
         arch: process.arch,
         locale: app.getLocale(),
@@ -125,7 +119,7 @@ export const systemHandlers = [
   {
     channel: SYSTEM_CHANNELS.SELECT_DIRECTORY,
     handler: wrapHandler(async (event: IpcMainInvokeEvent, options?: { defaultPath?: string; title?: string }): Promise<string | null> => {
-      const browserWindow = event.sender.getOwnerBrowserWindow();
+      const browserWindow = BrowserWindow.fromWebContents(event.sender);
       if (!browserWindow) {
         throw new Error('No browser window found');
       }
@@ -140,7 +134,7 @@ export const systemHandlers = [
         return null;
       }
       
-      return result.filePaths[0];
+      return result.filePaths[0] || null;
     }),
   },
   {
@@ -151,7 +145,7 @@ export const systemHandlers = [
       filters?: Array<{ name: string; extensions: string[] }>;
       multiSelections?: boolean;
     }): Promise<string | string[] | null> => {
-      const browserWindow = event.sender.getOwnerBrowserWindow();
+      const browserWindow = BrowserWindow.fromWebContents(event.sender);
       if (!browserWindow) {
         throw new Error('No browser window found');
       }
@@ -172,7 +166,7 @@ export const systemHandlers = [
         return null;
       }
       
-      return options?.multiSelections ? result.filePaths : result.filePaths[0];
+      return options?.multiSelections ? result.filePaths : (result.filePaths[0] || null);
     }),
   },
   {

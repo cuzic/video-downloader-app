@@ -64,6 +64,17 @@ export interface DownloadListResponse {
 }
 
 // Detection API types
+export interface Detection {
+  id: string;
+  url: string;
+  title?: string;
+  type: 'hls' | 'dash' | 'file';
+  timestamp: number;
+  sourceUrl?: string;
+  duration?: number;
+  quality?: string;
+}
+
 export interface DetectionListResponse {
   detections: Detection[];
   total: number;
