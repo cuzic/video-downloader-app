@@ -49,7 +49,7 @@
     "@vitejs/plugin-react": "^4.2.1",
     "concurrently": "^8.2.2",
     "drizzle-kit": "^0.20.10",
-    "electron": "^28.1.1",
+    "electron": "^37.3.1",
     "electron-builder": "^24.9.1",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
