@@ -2,11 +2,16 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import electron from 'vite-plugin-electron';
 import renderer from 'vite-plugin-electron-renderer';
-import path from 'path';
+import tsconfigPaths from 'vite-tsconfig-paths';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [
     react(),
+    tsconfigPaths(),
     electron([
       {
         // Main process entry
@@ -39,15 +44,6 @@ export default defineConfig({
     ]),
     renderer(),
   ],
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-      '@main': path.resolve(__dirname, './src/main'),
-      '@renderer': path.resolve(__dirname, './src/renderer'),
-      '@shared': path.resolve(__dirname, './src/shared'),
-      '@preload': path.resolve(__dirname, './src/preload'),
-    },
-  },
   build: {
     outDir: 'dist/renderer',
     rollupOptions: {

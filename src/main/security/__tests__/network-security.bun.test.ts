@@ -33,7 +33,7 @@ describe('NetworkSecurity', () => {
         'http://[::1]/test',
       ];
 
-      localUrls.forEach(url => {
+      localUrls.forEach((url) => {
         const result = NetworkSecurity.isUrlSafe(url);
         expect(result.safe).toBe(false);
         expect(result.reason).toContain('SSRF prevention');
@@ -49,7 +49,7 @@ describe('NetworkSecurity', () => {
         "https://example.com/test'; DROP TABLE users--",
       ];
 
-      suspiciousUrls.forEach(url => {
+      suspiciousUrls.forEach((url) => {
         const result = NetworkSecurity.isUrlSafe(url);
         expect(result.safe).toBe(false);
         expect(result.reason).toContain('Suspicious URL pattern');
@@ -66,7 +66,7 @@ describe('NetworkSecurity', () => {
   describe('checkRateLimit', () => {
     it('should allow requests within rate limit', () => {
       const identifier = 'test-host';
-      
+
       for (let i = 0; i < 10; i++) {
         expect(NetworkSecurity.checkRateLimit(identifier)).toBe(true);
       }
@@ -74,12 +74,12 @@ describe('NetworkSecurity', () => {
 
     it('should block requests exceeding rate limit', () => {
       const identifier = 'test-host';
-      
+
       // Make maximum allowed requests
       for (let i = 0; i < 100; i++) {
         NetworkSecurity.checkRateLimit(identifier);
       }
-      
+
       // Next request should be blocked
       expect(NetworkSecurity.checkRateLimit(identifier)).toBe(false);
     });
@@ -87,7 +87,7 @@ describe('NetworkSecurity', () => {
     it('should track different identifiers separately', () => {
       const id1 = 'host1';
       const id2 = 'host2';
-      
+
       for (let i = 0; i < 50; i++) {
         expect(NetworkSecurity.checkRateLimit(id1)).toBe(true);
         expect(NetworkSecurity.checkRateLimit(id2)).toBe(true);
@@ -102,11 +102,11 @@ describe('NetworkSecurity', () => {
 
     it('should return correct status after requests', () => {
       const identifier = 'test-host';
-      
+
       for (let i = 0; i < 10; i++) {
         NetworkSecurity.checkRateLimit(identifier);
       }
-      
+
       const status = NetworkSecurity.getRateLimitStatus(identifier);
       expect(status).toBeTruthy();
       expect(status?.count).toBe(10);
@@ -117,26 +117,26 @@ describe('NetworkSecurity', () => {
   describe('domain management', () => {
     it('should handle whitelist correctly', () => {
       NetworkSecurity.addWhitelistedDomain('trusted.com');
-      
+
       // When whitelist is configured, only whitelisted domains should be allowed
       const trusted = NetworkSecurity.isUrlSafe('https://trusted.com/test');
       const untrusted = NetworkSecurity.isUrlSafe('https://untrusted.com/test');
-      
+
       expect(trusted.safe).toBe(true);
       expect(untrusted.safe).toBe(false);
       expect(untrusted.reason).toContain('not in whitelist');
-      
+
       // Clean up
       NetworkSecurity.removeWhitelistedDomain('trusted.com');
     });
 
     it('should handle blacklist correctly', () => {
       NetworkSecurity.addBlacklistedDomain('malicious.com');
-      
+
       const result = NetworkSecurity.isUrlSafe('https://malicious.com/test');
       expect(result.safe).toBe(false);
       expect(result.reason).toContain('blacklisted');
-      
+
       // Clean up
       NetworkSecurity.removeBlacklistedDomain('malicious.com');
     });

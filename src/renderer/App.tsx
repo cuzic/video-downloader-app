@@ -1,31 +1,31 @@
 import { useState, useEffect } from 'react';
 import type { DownloadTaskDTO } from '@/shared/types';
 
-export function App() {
+function App(): JSX.Element {
   const [tasks, setTasks] = useState<DownloadTaskDTO[]>([]);
   const [version, setVersion] = useState<string>('');
 
   useEffect(() => {
     // Initialize settings on app start
-    window.electronAPI.settings.getAll();
-    
+    void window.electronAPI.settings.getAll();
+
     // Get app version
-    window.electronAPI.system.getInfo().then(info => setVersion(info.version));
-    
+    void window.electronAPI.system.getInfo().then((info) => setVersion(info.version));
+
     // Load initial tasks
-    loadTasks();
-    
+    void loadTasks();
+
     // Setup event listeners
     const unsubscribeProgress = window.electronAPI.download.onProgress((progress) => {
-      console.log('Progress update:', progress);
-      loadTasks();
+      console.warn('Progress update:', progress);
+      void loadTasks();
     });
-    
+
     const unsubscribeError = window.electronAPI.download.onError((error) => {
-      console.log('Download error:', error);
-      loadTasks();
+      console.error('Download error:', error);
+      void loadTasks();
     });
-    
+
     return () => {
       unsubscribeProgress();
       unsubscribeError();
@@ -40,32 +40,32 @@ export function App() {
   const handleAddDownload = async () => {
     const url = prompt('Enter video URL:');
     if (!url) return;
-    
+
     const paths = await window.electronAPI.system.getPaths();
     const downloadsPath = paths.downloads;
-    
+
     await window.electronAPI.download.start({
       url,
       type: 'file', // Will be detected automatically later
       saveDir: downloadsPath,
     });
-    
-    loadTasks();
+
+    void loadTasks();
   };
 
   const handlePause = async (taskId: string) => {
     await window.electronAPI.download.pause(taskId);
-    loadTasks();
+    void loadTasks();
   };
 
   const handleResume = async (taskId: string) => {
     await window.electronAPI.download.resume(taskId);
-    loadTasks();
+    void loadTasks();
   };
 
   const handleCancel = async (taskId: string) => {
     await window.electronAPI.download.cancel(taskId);
-    loadTasks();
+    void loadTasks();
   };
 
   return (
@@ -74,17 +74,17 @@ export function App() {
         <h1>Video Downloader</h1>
         <span className="version">v{version}</span>
       </header>
-      
+
       <div className="toolbar">
-        <button onClick={handleAddDownload} className="btn btn-primary">
+        <button onClick={() => void handleAddDownload()} className="btn btn-primary">
           Add Download
         </button>
       </div>
-      
+
       <div className="task-list">
         {tasks.length === 0 ? (
           <div className="empty-state">
-            <p>No downloads yet. Click "Add Download" to start.</p>
+            <p>No downloads yet. Click &quot;Add Download&quot; to start.</p>
           </div>
         ) : (
           tasks.map((task) => (
@@ -95,8 +95,8 @@ export function App() {
                 {task.progress.percent !== undefined && (
                   <div className="task-progress">
                     <div className="progress-bar">
-                      <div 
-                        className="progress-fill" 
+                      <div
+                        className="progress-fill"
                         style={{ width: `${task.progress.percent}%` }}
                       />
                     </div>
@@ -106,17 +106,20 @@ export function App() {
               </div>
               <div className="task-actions">
                 {task.status === 'running' && (
-                  <button onClick={() => handlePause(task.id)} className="btn btn-sm">
+                  <button onClick={() => void handlePause(task.id)} className="btn btn-sm">
                     Pause
                   </button>
                 )}
                 {task.status === 'paused' && (
-                  <button onClick={() => handleResume(task.id)} className="btn btn-sm">
+                  <button onClick={() => void handleResume(task.id)} className="btn btn-sm">
                     Resume
                   </button>
                 )}
                 {task.status !== 'completed' && task.status !== 'canceled' && (
-                  <button onClick={() => handleCancel(task.id)} className="btn btn-sm btn-danger">
+                  <button
+                    onClick={() => void handleCancel(task.id)}
+                    className="btn btn-sm btn-danger"
+                  >
                     Cancel
                   </button>
                 )}
@@ -128,3 +131,5 @@ export function App() {
     </div>
   );
 }
+
+export default App;
