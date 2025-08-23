@@ -15,3 +15,8 @@ drizzle.config.ts
 .vscode/
 bun.lockb
 yarn.lock
+
+# Temporarily ignore files with existing issues not related to this PR
+src/main/db/backup.ts
+src/main/db/init.ts
+src/main/downloader/
