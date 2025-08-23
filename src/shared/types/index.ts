@@ -7,39 +7,16 @@ export type {
   DownloadTaskDTO,
   DownloadProgress,
   DownloadError,
-  MediaVariant,
-  QualityRule,
-  RetryConfig,
 } from './download.types';
 
 // Settings types
-export type {
-  AppSettings,
-  DownloadSettings,
-  NotificationSettings,
-  AdvancedSettings,
-  SettingValue,
-} from './settings.types';
+export type { AppSettings } from './settings.types';
 
 // Media types
-export type {
-  MediaType,
-  MediaFormat,
-  MediaInfo,
-  StreamInfo,
-  PlaylistInfo,
-  SegmentInfo,
-  QualityLevel,
-  AudioCodec,
-  VideoCodec,
-} from './media.types';
+export type { MediaType } from './media.types';
 
 // Error types
-export type {
-  ErrorCode,
-  ErrorSeverity,
-  AppError,
-  DownloadErrorCode,
-  ValidationErrorCode,
-  SystemErrorCode,
-} from './error.types';
+export type { ErrorCode } from './error.types';
+
+// Re-export interfaces as types
+export type { IpcRequest, IpcResponse } from './ipc.types';
