@@ -6,7 +6,6 @@
  */
 
 import { spawn } from 'child_process';
-import { watch } from 'fs';
 import path from 'path';
 
 const rootDir = path.resolve(import.meta.dir, '..');

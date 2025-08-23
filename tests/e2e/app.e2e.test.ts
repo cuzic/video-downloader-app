@@ -39,7 +39,7 @@ test.describe('Application Launch', () => {
   });
 
   test('should have correct window dimensions', async () => {
-    const windowState = await electronApp.evaluate(async ({ BrowserWindow }) => {
+    const windowState = await electronApp.evaluate(async ({ BrowserWindow }: any) => {
       const mainWindow = BrowserWindow.getAllWindows()[0];
       const bounds = mainWindow.getBounds();
       return {
