@@ -38,6 +38,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.55.0",
     "@types/better-sqlite3": "^7.6.8",
     "@types/bun": "latest",
     "@types/node": "^20.10.6",
@@ -48,7 +49,7 @@
     "@vitejs/plugin-react": "^4.2.1",
     "concurrently": "^8.2.2",
     "drizzle-kit": "^0.20.10",
-    "electron": "^28.1.1",
+    "electron": "^37.3.1",
     "electron-builder": "^24.9.1",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
@@ -56,13 +57,13 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.5",
-    "@playwright/test": "^1.40.1",
     "playwright": "^1.40.1",
     "prettier": "^3.1.1",
     "typescript": "^5.3.3",
     "vite": "^5.0.10",
     "vite-plugin-electron": "^0.15.5",
-    "vite-plugin-electron-renderer": "^0.14.5"
+    "vite-plugin-electron-renderer": "^0.14.5",
+    "vitest": "^3.2.4"
   },
   "build": {
     "appId": "com.videodownloader.app",

@@ -1,13 +1,23 @@
-import { IpcMainInvokeEvent, BrowserWindow } from 'electron';
-import { TaskRepository } from '../../db/repositories/task.repository';
-import type { DownloadSpec, DownloadTaskDTO, DownloadTask } from '@/shared/types';
-import type { DownloadStartResponse, DownloadListResponse } from '@/shared/types/ipc.types';
+import { IpcMainInvokeEvent } from 'electron';
+import type { DownloadSpec, DownloadTaskDTO } from '@/shared/types';
+import type { DownloadStartResponse } from '@/shared/types/ipc.types';
 import { DOWNLOAD_CHANNELS } from '@/shared/constants/channels';
 import { wrapHandler, validateRequired } from '../utils/error-handler';
-import { ProgressReporter, broadcast } from '../utils/performance';
+import { broadcast } from '../utils/performance';
 import { RepositoryFactory } from '../../db/repositories';
 
 const taskRepo = RepositoryFactory.createTaskRepository();
+
+// Helper function for safe JSON parsing
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function safeJsonParse<T = any>(str: string | null | undefined): T | undefined {
+  if (!str) return undefined;
+  try {
+    return JSON.parse(str);
+  } catch {
+    return undefined;
+  }
+}
 
 export const downloadHandlers = [
   {
@@ -82,18 +92,18 @@ export const downloadHandlers = [
           url: task.url,
           type: task.mediaType as any,
           filename: task.filename || undefined,
-          saveDir: task.saveDir,
-          headers: task.headers ? JSON.parse(task.headers) : undefined,
-          variant: task.variant ? JSON.parse(task.variant) : undefined,
+          saveDir: task.saveDir || undefined,
+          headers: safeJsonParse(task.headers),
+          variant: safeJsonParse(task.variant),
           retry: undefined, // TODO: Parse from task
           priority: task.priority,
-          qualityRule: task.qualityRule ? JSON.parse(task.qualityRule) : undefined,
-          metadata: task.metadata ? JSON.parse(task.metadata) : undefined,
+          qualityRule: safeJsonParse(task.qualityRule),
+          metadata: task.metadata || undefined,
         },
-        status: task.status as any,
+        status: task.status as DownloadTaskDTO['status'],
         progress: {
           percent: task.percent || undefined,
-          downloadedBytes: task.downloadedBytes,
+          downloadedBytes: task.downloadedBytes || 0,
           totalBytes: task.totalBytes || undefined,
           speedBps: task.speedBps || undefined,
           etaMs: task.etaMs || undefined,
@@ -101,15 +111,14 @@ export const downloadHandlers = [
         error: task.errorCode ? {
           code: task.errorCode,
           message: task.errorMessage || '',
-          details: task.errorDetails ? JSON.parse(task.errorDetails) : undefined,
+          details: safeJsonParse(task.errorDetails),
           retryable: true,
           attempt: task.retryCount,
         } : undefined,
-        createdAt: new Date(task.createdAt * 1000).toISOString(),
-        startedAt: task.startedAt ? new Date(task.startedAt * 1000).toISOString() : undefined,
-        pausedAt: task.pausedAt ? new Date(task.pausedAt * 1000).toISOString() : undefined,
-        completedAt: task.completedAt ? new Date(task.completedAt * 1000).toISOString() : undefined,
-        outputPath: task.outputPath || undefined,
+        createdAt: task.createdAt.toISOString(),
+        startedAt: task.startedAt ? task.startedAt.toISOString() : undefined,
+        pausedAt: task.pausedAt ? task.pausedAt.toISOString() : undefined,
+        completedAt: task.completedAt ? task.completedAt.toISOString() : undefined,
       }));
     },
   },
@@ -126,18 +135,18 @@ export const downloadHandlers = [
           url: task.url,
           type: task.mediaType as any,
           filename: task.filename || undefined,
-          saveDir: task.saveDir,
-          headers: task.headers ? JSON.parse(task.headers) : undefined,
-          variant: task.variant ? JSON.parse(task.variant) : undefined,
+          saveDir: task.saveDir || undefined,
+          headers: safeJsonParse(task.headers),
+          variant: safeJsonParse(task.variant),
           retry: undefined,
           priority: task.priority,
-          qualityRule: task.qualityRule ? JSON.parse(task.qualityRule) : undefined,
-          metadata: task.metadata ? JSON.parse(task.metadata) : undefined,
+          qualityRule: safeJsonParse(task.qualityRule),
+          metadata: task.metadata || undefined,
         },
-        status: task.status as any,
+        status: task.status as DownloadTaskDTO['status'],
         progress: {
           percent: task.percent || undefined,
-          downloadedBytes: task.downloadedBytes,
+          downloadedBytes: task.downloadedBytes || 0,
           totalBytes: task.totalBytes || undefined,
           speedBps: task.speedBps || undefined,
           etaMs: task.etaMs || undefined,
@@ -145,15 +154,14 @@ export const downloadHandlers = [
         error: task.errorCode ? {
           code: task.errorCode,
           message: task.errorMessage || '',
-          details: task.errorDetails ? JSON.parse(task.errorDetails) : undefined,
+          details: safeJsonParse(task.errorDetails),
           retryable: true,
           attempt: task.retryCount,
         } : undefined,
-        createdAt: new Date(task.createdAt * 1000).toISOString(),
-        startedAt: task.startedAt ? new Date(task.startedAt * 1000).toISOString() : undefined,
-        pausedAt: task.pausedAt ? new Date(task.pausedAt * 1000).toISOString() : undefined,
-        completedAt: task.completedAt ? new Date(task.completedAt * 1000).toISOString() : undefined,
-        outputPath: task.outputPath || undefined,
+        createdAt: task.createdAt.toISOString(),
+        startedAt: task.startedAt ? task.startedAt.toISOString() : undefined,
+        pausedAt: task.pausedAt ? task.pausedAt.toISOString() : undefined,
+        completedAt: task.completedAt ? task.completedAt.toISOString() : undefined,
       };
     },
   },

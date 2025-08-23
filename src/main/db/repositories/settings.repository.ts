@@ -33,7 +33,7 @@ export class SettingsRepository {
         value: jsonValue,
         type: type as any,
         description,
-        updatedAt: Math.floor(Date.now() / 1000),
+        updatedAt: new Date(),
         updatedBy: 'user',
       })
       .onConflictDoUpdate({
@@ -41,7 +41,7 @@ export class SettingsRepository {
         set: {
           value: jsonValue,
           type: type as any,
-          updatedAt: Math.floor(Date.now() / 1000),
+          updatedAt: new Date(),
           updatedBy: 'user',
         },
       });

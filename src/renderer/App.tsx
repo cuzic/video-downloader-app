@@ -7,41 +7,42 @@ export function App() {
 
   useEffect(() => {
     // Initialize settings on app start
-    window.electronAPI.settings.initialize();
+    window.electronAPI.settings.getAll();
     
     // Get app version
-    window.electronAPI.system.getVersion().then(setVersion);
+    window.electronAPI.system.getInfo().then(info => setVersion(info.version));
     
     // Load initial tasks
     loadTasks();
     
     // Setup event listeners
-    const unsubscribeProgress = window.electronAPI.download.onProgress((taskId, progress) => {
-      console.log('Progress update:', taskId, progress);
+    const unsubscribeProgress = window.electronAPI.download.onProgress((progress) => {
+      console.log('Progress update:', progress);
       loadTasks();
     });
     
-    const unsubscribeStatus = window.electronAPI.download.onStatusChanged((taskId, status) => {
-      console.log('Status changed:', taskId, status);
+    const unsubscribeError = window.electronAPI.download.onError((error) => {
+      console.log('Download error:', error);
       loadTasks();
     });
     
     return () => {
       unsubscribeProgress();
-      unsubscribeStatus();
+      unsubscribeError();
     };
   }, []);
 
   const loadTasks = async () => {
-    const taskList = await window.electronAPI.download.list();
-    setTasks(taskList);
+    const response = await window.electronAPI.download.listTasks();
+    setTasks(response.tasks);
   };
 
   const handleAddDownload = async () => {
     const url = prompt('Enter video URL:');
     if (!url) return;
     
-    const downloadsPath = await window.electronAPI.system.getPath('downloads');
+    const paths = await window.electronAPI.system.getPaths();
+    const downloadsPath = paths.downloads;
     
     await window.electronAPI.download.start({
       url,

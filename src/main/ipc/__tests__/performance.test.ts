@@ -6,14 +6,9 @@ import {
   ProgressReporter,
   RateLimiter,
 } from '../utils/performance';
-import { BrowserWindow } from 'electron';
 
-// Mock Electron modules
-vi.mock('electron', () => ({
-  BrowserWindow: {
-    getAllWindows: vi.fn(() => []),
-  },
-}));
+// Mock Electron modules - uses centralized mock
+vi.mock('electron');
 
 describe('Performance Utilities', () => {
   beforeEach(() => {
@@ -278,8 +273,6 @@ describe('Performance Utilities', () => {
 
       // Use up all tokens
       await limiter.acquire(5);
-
-      const startTime = Date.now();
       
       // This should wait for refill
       const promise = limiter.acquire(1);

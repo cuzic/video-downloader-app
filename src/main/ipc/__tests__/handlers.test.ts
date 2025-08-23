@@ -1,36 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { IpcMainInvokeEvent } from 'electron';
+import type { IpcMainInvokeEvent } from 'electron';
 import { downloadHandlers } from '../handlers/download.handler';
 import { settingsHandlers } from '../handlers/settings.handler';
 import { systemHandlers } from '../handlers/system.handler';
 import { RepositoryFactory } from '../../db/repositories';
 import type { DownloadSpec } from '@/shared/types';
+import type { IpcHandler } from '../types';
 
-// Mock Electron modules
-vi.mock('electron', () => ({
-  app: {
-    getPath: vi.fn((name: string) => `/mock/path/${name}`),
-    getVersion: vi.fn(() => '1.0.0'),
-    getLocale: vi.fn(() => 'en-US'),
-  },
-  shell: {
-    openPath: vi.fn(),
-    showItemInFolder: vi.fn(),
-    openExternal: vi.fn(),
-    trashItem: vi.fn(),
-  },
-  dialog: {
-    showOpenDialog: vi.fn(),
-  },
-  BrowserWindow: {
-    getAllWindows: vi.fn(() => []),
-  },
-  ipcMain: {
-    handle: vi.fn(),
-    removeHandler: vi.fn(),
-  },
-  IpcMainInvokeEvent: vi.fn(),
-}));
+// Mock Electron modules - uses centralized mock
+vi.mock('electron');
 
 // Mock repositories
 vi.mock('../../db/repositories', () => ({
@@ -52,8 +30,18 @@ vi.mock('fs', () => ({
   statSync: vi.fn(),
 }));
 
+// Helper to extract handler with proper typing
+function getHandler(
+  handlers: Array<{ channel: string; handler: IpcHandler<any[], any> }>,
+  channel: string
+): IpcHandler<any[], any> {
+  const handler = handlers.find(h => h.channel === channel)?.handler;
+  if (!handler) throw new Error(`Handler not found for channel: ${channel}`);
+  return handler;
+}
+
 describe('Download Handlers', () => {
-  let mockTaskRepo: any;
+  let mockTaskRepo: ReturnType<typeof vi.fn>;
   let mockEvent: IpcMainInvokeEvent;
 
   beforeEach(() => {
@@ -79,11 +67,11 @@ describe('Download Handlers', () => {
     it('should create a new download task', async () => {
       const spec: DownloadSpec = {
         url: 'https://example.com/video.mp4',
-        type: 'video',
+        type: 'file' as any,
         saveDir: '/downloads',
       };
 
-      const handler = downloadHandlers.find(h => h.channel === 'app:download:start')!.handler;
+      const handler = getHandler(downloadHandlers, 'app:download:start');
       const result = await handler(mockEvent, spec);
 
       expect(mockTaskRepo.create).toHaveBeenCalledWith(spec);
@@ -91,7 +79,7 @@ describe('Download Handlers', () => {
     });
 
     it('should validate required fields', async () => {
-      const handler = downloadHandlers.find(h => h.channel === 'app:download:start')!.handler;
+      const handler = getHandler(downloadHandlers, 'app:download:start');
       
       await expect(handler(mockEvent, null)).rejects.toThrow();
     });
@@ -100,7 +88,7 @@ describe('Download Handlers', () => {
   describe('PAUSE handler', () => {
     it('should pause a download task', async () => {
       const taskId = 'task-123';
-      const handler = downloadHandlers.find(h => h.channel === 'app:download:pause')!.handler;
+      const handler = getHandler(downloadHandlers, 'app:download:pause');
       
       await handler(mockEvent, taskId);
 
@@ -108,7 +96,7 @@ describe('Download Handlers', () => {
     });
 
     it('should validate task ID', async () => {
-      const handler = downloadHandlers.find(h => h.channel === 'app:download:pause')!.handler;
+      const handler = getHandler(downloadHandlers, 'app:download:pause');
       
       await expect(handler(mockEvent, null)).rejects.toThrow();
     });
@@ -131,7 +119,7 @@ describe('Download Handlers', () => {
 
       mockTaskRepo.getAll.mockResolvedValue(mockTasks);
 
-      const handler = downloadHandlers.find(h => h.channel === 'app:download:list')!.handler;
+      const handler = getHandler(downloadHandlers, 'app:download:list');
       const result = await handler(mockEvent);
 
       expect(result).toHaveLength(1);
@@ -172,7 +160,7 @@ describe('Settings Handlers', () => {
     it('should get a setting value', async () => {
       mockSettingsRepo.get.mockResolvedValue({ key: 'theme', value: 'dark' });
 
-      const handler = settingsHandlers.find(h => h.channel === 'app:settings:get')!.handler;
+      const handler = getHandler(settingsHandlers, 'app:settings:get');
       const result = await handler(mockEvent, 'theme');
 
       expect(mockSettingsRepo.get).toHaveBeenCalledWith('theme');
@@ -182,7 +170,7 @@ describe('Settings Handlers', () => {
     it('should return undefined for non-existent setting', async () => {
       mockSettingsRepo.get.mockResolvedValue(null);
 
-      const handler = settingsHandlers.find(h => h.channel === 'app:settings:get')!.handler;
+      const handler = getHandler(settingsHandlers, 'app:settings:get');
       const result = await handler(mockEvent, 'nonexistent');
 
       expect(result).toBeUndefined();
@@ -191,14 +179,14 @@ describe('Settings Handlers', () => {
 
   describe('SET handler', () => {
     it('should set a setting value', async () => {
-      const handler = settingsHandlers.find(h => h.channel === 'app:settings:set')!.handler;
+      const handler = getHandler(settingsHandlers, 'app:settings:set');
       await handler(mockEvent, 'theme', 'light');
 
       expect(mockSettingsRepo.set).toHaveBeenCalledWith('theme', 'light');
     });
 
     it('should validate required fields', async () => {
-      const handler = settingsHandlers.find(h => h.channel === 'app:settings:set')!.handler;
+      const handler = getHandler(settingsHandlers, 'app:settings:set');
       
       await expect(handler(mockEvent, null, 'value')).rejects.toThrow();
     });
@@ -212,7 +200,7 @@ describe('Settings Handlers', () => {
         { key: 'autoStart', value: true },
       ]);
 
-      const handler = settingsHandlers.find(h => h.channel === 'app:settings:getAll')!.handler;
+      const handler = getHandler(settingsHandlers, 'app:settings:getAll');
       const result = await handler(mockEvent);
 
       expect(result).toEqual({
@@ -227,7 +215,7 @@ describe('Settings Handlers', () => {
     it('should initialize default settings', async () => {
       mockSettingsRepo.get.mockResolvedValue(null);
 
-      const handler = settingsHandlers.find(h => h.channel === 'app:settings:initialize')!.handler;
+      const handler = getHandler(settingsHandlers, 'app:settings:initialize');
       await handler(mockEvent);
 
       // Check that default settings were created
@@ -239,7 +227,7 @@ describe('Settings Handlers', () => {
     it('should not overwrite existing settings', async () => {
       mockSettingsRepo.get.mockResolvedValue({ key: 'theme', value: 'dark' });
 
-      const handler = settingsHandlers.find(h => h.channel === 'app:settings:initialize')!.handler;
+      const handler = getHandler(settingsHandlers, 'app:settings:initialize');
       await handler(mockEvent);
 
       // Theme should not be set since it already exists
@@ -268,7 +256,7 @@ describe('System Handlers', () => {
 
   describe('GET_PATH handler', () => {
     it('should return system paths', async () => {
-      const handler = systemHandlers.find(h => h.channel === 'app:system:getPath')!.handler;
+      const handler = getHandler(systemHandlers, 'app:system:getPath');
       
       const result = await handler(mockEvent, 'downloads');
       
@@ -276,7 +264,7 @@ describe('System Handlers', () => {
     });
 
     it('should validate path name', async () => {
-      const handler = systemHandlers.find(h => h.channel === 'app:system:getPath')!.handler;
+      const handler = getHandler(systemHandlers, 'app:system:getPath');
       
       await expect(handler(mockEvent, 'invalid' as any)).rejects.toThrow();
     });
@@ -284,7 +272,7 @@ describe('System Handlers', () => {
 
   describe('GET_VERSION handler', () => {
     it('should return app version', async () => {
-      const handler = systemHandlers.find(h => h.channel === 'app:system:getVersion')!.handler;
+      const handler = getHandler(systemHandlers, 'app:system:getVersion');
       
       const result = await handler(mockEvent);
       
@@ -296,7 +284,7 @@ describe('System Handlers', () => {
     it('should check if file exists', async () => {
       mockFs.existsSync.mockReturnValue(true);
 
-      const handler = systemHandlers.find(h => h.channel === 'app:system:checkFileExists')!.handler;
+      const handler = getHandler(systemHandlers, 'app:system:checkFileExists');
       const result = await handler(mockEvent, '/path/to/file.txt');
 
       expect(mockFs.existsSync).toHaveBeenCalled();
@@ -306,7 +294,7 @@ describe('System Handlers', () => {
     it('should return false for non-existent file', async () => {
       mockFs.existsSync.mockReturnValue(false);
 
-      const handler = systemHandlers.find(h => h.channel === 'app:system:checkFileExists')!.handler;
+      const handler = getHandler(systemHandlers, 'app:system:checkFileExists');
       const result = await handler(mockEvent, '/nonexistent/file.txt');
 
       expect(result).toBe(false);
@@ -326,7 +314,7 @@ describe('System Handlers', () => {
       mockFs.existsSync.mockReturnValue(true);
       mockFs.statSync.mockReturnValue(mockStats);
 
-      const handler = systemHandlers.find(h => h.channel === 'app:system:getFileInfo')!.handler;
+      const handler = getHandler(systemHandlers, 'app:system:getFileInfo');
       const result = await handler(mockEvent, '/path/to/file.txt');
 
       expect(result).toMatchObject({
@@ -340,7 +328,7 @@ describe('System Handlers', () => {
     it('should return exists: false for non-existent file', async () => {
       mockFs.existsSync.mockReturnValue(false);
 
-      const handler = systemHandlers.find(h => h.channel === 'app:system:getFileInfo')!.handler;
+      const handler = getHandler(systemHandlers, 'app:system:getFileInfo');
       const result = await handler(mockEvent, '/nonexistent/file.txt');
 
       expect(result).toEqual({ exists: false });

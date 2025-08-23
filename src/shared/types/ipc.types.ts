@@ -2,6 +2,7 @@ import type {
   DownloadSpec, 
   DownloadProgress, 
   DownloadTask,
+  DownloadTaskDTO,
   AppSettings,
 } from './index';
 
@@ -59,11 +60,22 @@ export interface DownloadStartResponse {
 }
 
 export interface DownloadListResponse {
-  tasks: DownloadTask[];
+  tasks: DownloadTaskDTO[];
   total: number;
 }
 
 // Detection API types
+export interface Detection {
+  id: string;
+  url: string;
+  title?: string;
+  type: 'hls' | 'dash' | 'file';
+  timestamp: number;
+  sourceUrl?: string;
+  duration?: number;
+  quality?: string;
+}
+
 export interface DetectionListResponse {
   detections: Detection[];
   total: number;

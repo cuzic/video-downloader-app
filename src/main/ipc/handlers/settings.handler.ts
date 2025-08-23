@@ -1,5 +1,4 @@
 import { IpcMainInvokeEvent } from 'electron';
-import { SettingsRepository } from '../../db/repositories/settings.repository';
 import type { AppSettings } from '@/shared/types';
 import { SETTINGS_CHANNELS } from '@/shared/constants/channels';
 import { wrapHandler, validateRequired } from '../utils/error-handler';
@@ -31,32 +30,24 @@ export const settingsHandlers = [
     channel: SETTINGS_CHANNELS.GET_ALL,
     handler: wrapHandler(async (_event: IpcMainInvokeEvent): Promise<Partial<AppSettings>> => {
       const settings = await settingsRepo.getAll();
-      const result: Partial<AppSettings> = {};
-      
-      settings.forEach(setting => {
-        result[setting.key as keyof AppSettings] = setting.value;
-      });
-      
-      return result;
+      // getAll() returns Record<string, any>, so we just need to cast it
+      return settings as Partial<AppSettings>;
     }),
   },
   {
-    channel: SETTINGS_CHANNELS.INITIALIZE,
+    channel: 'app:settings:initialize',
     handler: wrapHandler(async (_event: IpcMainInvokeEvent): Promise<void> => {
       // Initialize default settings if not present
       const defaults: Partial<AppSettings> = {
-        downloadPath: '',
+        downloadDirectory: '',
         maxConcurrentDownloads: 3,
-        autoStart: false,
-        notifications: true,
+        autoStartDownload: false,
+        notificationEnabled: true,
+        ffmpegPath: 'ffmpeg',
         theme: 'system',
         language: 'en',
-        windowState: {
-          width: 1200,
-          height: 800,
-          x: undefined,
-          y: undefined,
-        },
+        downloadQualityPreference: 'highest',
+        duplicateAction: 'skip',
       };
       
       for (const [key, value] of Object.entries(defaults)) {
@@ -71,16 +62,20 @@ export const settingsHandlers = [
     channel: SETTINGS_CHANNELS.RESET,
     handler: wrapHandler(async (_event: IpcMainInvokeEvent): Promise<void> => {
       // Reset all settings to defaults
-      await settingsRepo.clear();
+      // Clear all settings
+      const allSettings = await settingsRepo.getAll();
+      for (const key of Object.keys(allSettings)) {
+        await settingsRepo.set(key, null);
+      }
       
       // Reinitialize with defaults
-      const initHandler = settingsHandlers.find(h => h.channel === SETTINGS_CHANNELS.INITIALIZE);
+      const initHandler = settingsHandlers.find(h => h.channel === 'app:settings:initialize');
       if (initHandler) {
         await initHandler.handler(_event);
       }
       
       // Broadcast reset event
-      broadcast(SETTINGS_CHANNELS.ON_RESET, {});
+      broadcast(SETTINGS_CHANNELS.ON_CHANGED, { key: 'all', value: null });
     }),
   },
 ];

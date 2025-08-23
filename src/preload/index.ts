@@ -5,11 +5,6 @@ import type {
   AppSettings,
 } from '@/shared/types';
 import {
-  DOWNLOAD_CHANNELS,
-  SETTINGS_CHANNELS,
-  SYSTEM_CHANNELS,
-} from '@/shared/constants/channels';
-import {
   downloadSpecSchema,
   taskIdSchema,
   systemPathNameSchema,

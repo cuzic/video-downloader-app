@@ -1,7 +1,7 @@
 import { db } from '../client';
 import { statistics, statisticsDomains, statisticsMediaTypes } from '../schema';
-import { eq, and, gte, sql, desc } from 'drizzle-orm';
-import type { Statistics, StatisticsDomain, StatisticsMediaType } from '../schema/statistics';
+import { eq, and, gte, lte, sql, desc } from 'drizzle-orm';
+import type { Statistics } from '../schema/statistics';
 
 export class StatisticsRepository {
   private getDateKey(): string {
@@ -37,9 +37,13 @@ export class StatisticsRepository {
         target: statistics.date,
         set: {
           totalDownloads: sql`${statistics.totalDownloads} + 1`,
-          completedCount: isCompleted ? sql`${statistics.completedCount} + 1` : statistics.completedCount,
-          errorCount: isError ? sql`${statistics.errorCount} + 1` : statistics.errorCount,
-          canceledCount: isCanceled ? sql`${statistics.canceledCount} + 1` : statistics.canceledCount,
+          // Type casting is necessary due to Drizzle ORM's SQL template literal type inference
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          completedCount: isCompleted ? sql`${statistics.completedCount} + 1` as any : statistics.completedCount as any,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          errorCount: isError ? sql`${statistics.errorCount} + 1` as any : statistics.errorCount as any,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          canceledCount: isCanceled ? sql`${statistics.canceledCount} + 1` as any : statistics.canceledCount as any,
           totalBytes: sql`${statistics.totalBytes} + ${bytes}`,
           totalTimeMs: sql`${statistics.totalTimeMs} + ${timeMs}`,
           averageSpeedBps: sql`((${statistics.averageSpeedBps} * ${statistics.totalDownloads}) + ${speedBps}) / (${statistics.totalDownloads} + 1)`,
@@ -95,7 +99,7 @@ export class StatisticsRepository {
       .from(statistics)
       .where(and(
         gte(statistics.date, startDate),
-        gte(endDate, statistics.date)
+        lte(statistics.date, endDate)
       ))
       .orderBy(statistics.date);
   }
@@ -180,7 +184,7 @@ export class StatisticsRepository {
     
     // Domain and media type stats will be cascade deleted
     const result = await db.delete(statistics)
-      .where(gte(cutoff, statistics.date));
+      .where(lte(statistics.date, cutoff));
     
     return result.changes;
   }
