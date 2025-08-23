@@ -1,15 +1,12 @@
 import type { Config } from 'drizzle-kit';
-import path from 'path';
 
 export default {
-  schema: './src/main/db/schema/index.ts',
-  out: './drizzle',
+  schema: '/home/cuzic/video-downloader-app/src/main/db/schema/*.ts',
+  out: '/home/cuzic/video-downloader-app/drizzle',
   driver: 'better-sqlite',
   dbCredentials: {
-    url: process.env.NODE_ENV === 'test' 
-      ? ':memory:' 
-      : path.join(process.cwd(), 'database', 'app.db')
+    url: '/home/cuzic/video-downloader-app/video-downloader.db',
   },
-  strict: true,
   verbose: true,
+  strict: true,
 } satisfies Config;
