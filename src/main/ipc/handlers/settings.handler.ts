@@ -51,9 +51,8 @@ export const settingsHandlers = [
         ffmpegPath: 'ffmpeg',
         theme: 'system',
         language: 'en',
-        autoRetry: false,
-        retryLimit: 3,
-        retryDelay: 5000,
+        downloadQualityPreference: 'highest',
+        duplicateAction: 'skip',
       };
       
       for (const [key, value] of Object.entries(defaults)) {
@@ -70,8 +69,8 @@ export const settingsHandlers = [
       // Reset all settings to defaults
       // Clear all settings
       const allSettings = await settingsRepo.getAll();
-      for (const setting of allSettings) {
-        await settingsRepo.set(setting.key, null);
+      for (const key of Object.keys(allSettings)) {
+        await settingsRepo.set(key, null);
       }
       
       // Reinitialize with defaults

@@ -1,10 +1,9 @@
-import { IpcMainInvokeEvent, BrowserWindow } from 'electron';
-import { TaskRepository } from '../../db/repositories/task.repository';
-import type { DownloadSpec, DownloadTaskDTO, DownloadTask } from '@/shared/types';
-import type { DownloadStartResponse, DownloadListResponse } from '@/shared/types/ipc.types';
+import { IpcMainInvokeEvent } from 'electron';
+import type { DownloadSpec, DownloadTaskDTO } from '@/shared/types';
+import type { DownloadStartResponse } from '@/shared/types/ipc.types';
 import { DOWNLOAD_CHANNELS } from '@/shared/constants/channels';
 import { wrapHandler, validateRequired } from '../utils/error-handler';
-import { ProgressReporter, broadcast } from '../utils/performance';
+import { broadcast } from '../utils/performance';
 import { RepositoryFactory } from '../../db/repositories';
 
 const taskRepo = RepositoryFactory.createTaskRepository();
@@ -88,12 +87,12 @@ export const downloadHandlers = [
           retry: undefined, // TODO: Parse from task
           priority: task.priority,
           qualityRule: task.qualityRule ? JSON.parse(task.qualityRule) : undefined,
-          metadata: task.metadata ? JSON.parse(task.metadata) : undefined,
+          metadata: task.metadata ? JSON.parse(task.metadata as string) : undefined,
         },
         status: task.status as any,
         progress: {
           percent: task.percent || undefined,
-          downloadedBytes: task.downloadedBytes,
+          downloadedBytes: task.downloadedBytes || 0,
           totalBytes: task.totalBytes || undefined,
           speedBps: task.speedBps || undefined,
           etaMs: task.etaMs || undefined,
@@ -131,12 +130,12 @@ export const downloadHandlers = [
           retry: undefined,
           priority: task.priority,
           qualityRule: task.qualityRule ? JSON.parse(task.qualityRule) : undefined,
-          metadata: task.metadata ? JSON.parse(task.metadata) : undefined,
+          metadata: task.metadata ? JSON.parse(task.metadata as string) : undefined,
         },
         status: task.status as any,
         progress: {
           percent: task.percent || undefined,
-          downloadedBytes: task.downloadedBytes,
+          downloadedBytes: task.downloadedBytes || 0,
           totalBytes: task.totalBytes || undefined,
           speedBps: task.speedBps || undefined,
           etaMs: task.etaMs || undefined,

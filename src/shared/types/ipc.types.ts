@@ -2,6 +2,7 @@ import type {
   DownloadSpec, 
   DownloadProgress, 
   DownloadTask,
+  DownloadTaskDTO,
   AppSettings,
 } from './index';
 
@@ -59,7 +60,7 @@ export interface DownloadStartResponse {
 }
 
 export interface DownloadListResponse {
-  tasks: DownloadTask[];
+  tasks: DownloadTaskDTO[];
   total: number;
 }
 

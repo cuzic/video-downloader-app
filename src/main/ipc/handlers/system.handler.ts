@@ -1,4 +1,4 @@
-import { IpcMainInvokeEvent, app, shell, dialog } from 'electron';
+import { IpcMainInvokeEvent, app, shell, dialog, BrowserWindow } from 'electron';
 import { existsSync, statSync } from 'fs';
 import { resolve, isAbsolute } from 'path';
 import { SYSTEM_CHANNELS } from '@/shared/constants/channels';

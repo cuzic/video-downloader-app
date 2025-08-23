@@ -3,7 +3,6 @@ import { downloadHandlers } from './handlers/download.handler';
 import { settingsHandlers } from './handlers/settings.handler';
 import { systemHandlers } from './handlers/system.handler';
 import { setupErrorHandlers } from './utils/error-handler';
-import type { IPCError } from '@/shared/types/ipc.types';
 
 /**
  * IPC Handler Manager
