@@ -118,49 +118,46 @@ minify = false
 sourcemap = true
 
 # Scripts that can be run with 'bun run'
+# These handle Node/TS-specific tasks (the "inside" tasks)
+# Project-wide orchestration is handled by mise (the "outside" tasks)
 [scripts]
-# Development
-dev = "concurrently \"bun run dev:main\" \"bun run dev:renderer\" \"bun run dev:preload\""
+# Development (JS/TS tasks)
+dev = "bun run scripts/dev.ts"
 "dev:main" = "bun --watch src/main/index.ts"
 "dev:renderer" = "vite"
 "dev:preload" = "bun build src/preload/index.ts --outdir dist/preload --watch"
 
-# Building
-build = "bun run build:main && bun run build:preload && bun run build:renderer"
+# Build (JS/TS tasks)
+build = "bun run scripts/build.ts"
 "build:main" = "bun build src/main/index.ts --outdir dist/main --target node"
 "build:preload" = "bun build src/preload/index.ts --outdir dist/preload --target node"
 "build:renderer" = "vite build"
 
-# Testing
+# Testing (JS/TS tasks)
 test = "bun test"
 "test:watch" = "bun test --watch"
 "test:coverage" = "bun test --coverage"
 "test:unit" = "bun test src/**/*.test.ts"
 "test:e2e" = "playwright test"
 
-# Code quality
+# Code quality (JS/TS tasks)
 lint = "eslint . --ext .ts,.tsx"
 "lint:fix" = "eslint . --ext .ts,.tsx --fix"
 format = "prettier --write ."
 "format:check" = "prettier --check ."
 typecheck = "tsc --noEmit"
-"check:all" = "bun run typecheck && bun run lint && bun run format:check"
 
-# Database
+# Database (JS/TS tasks)
 "db:generate" = "drizzle-kit generate:sqlite"
 "db:push" = "drizzle-kit push:sqlite"
 "db:studio" = "drizzle-kit studio"
 "db:migrate" = "bun src/main/db/migrate.ts"
 
-# Electron
+# Electron (JS/TS tasks)
 electron = "electron ."
 "electron:dev" = "electron . --dev"
-dist = "electron-builder"
-package = "bun run build && electron-builder"
 
-# Utilities
-clean = "rm -rf dist dist-electron node_modules"
-"clean:cache" = "rm -rf .bun"
+# Git hooks
 prepare = "husky"
 
 # Dependencies to always bundle
