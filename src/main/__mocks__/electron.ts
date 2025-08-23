@@ -79,13 +79,3 @@ export const session = {
 };
 
 export const IpcMainInvokeEvent = vi.fn();
-
-export {
-  app,
-  BrowserWindow,
-  ipcMain,
-  shell,
-  dialog,
-  net,
-  session,
-};
