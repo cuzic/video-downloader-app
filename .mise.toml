@@ -33,54 +33,54 @@ run = "bun install"
 
 [tasks.dev]
 description = "Start development server"
-run = "bun run scripts/dev.ts"
+run = "bun run dev"
 depends = ["install"]
 
 [tasks.build]
 description = "Build for production"
-run = "bun run scripts/build.ts"
+run = "bun run build"
 depends = ["clean", "typecheck"]
 
 [tasks.test]
 description = "Run all tests"
-run = "bun run scripts/test.ts"
+run = "bun run test"
 
 [tasks."test:watch"]
 description = "Run tests in watch mode"
-run = "bun run scripts/test.ts --watch"
+run = "bun run test:watch"
 
 [tasks."test:coverage"]
 description = "Run tests with coverage"
-run = "bun run scripts/test.ts --coverage"
+run = "bun run test:coverage"
 
 [tasks."test:unit"]
 description = "Run unit tests only"
-run = "bun run scripts/test.ts --unit"
+run = "bun run test:unit"
 
 [tasks."test:e2e"]
 description = "Run E2E tests"
-run = "bun run scripts/test.ts --e2e"
+run = "bun run test:e2e"
 depends = ["build"]
 
 [tasks.lint]
 description = "Run ESLint"
-run = "bunx eslint . --ext .ts,.tsx"
+run = "bun run lint"
 
 [tasks."lint:fix"]
 description = "Run ESLint with auto-fix"
-run = "bunx eslint . --ext .ts,.tsx --fix"
+run = "bun run lint:fix"
 
 [tasks.format]
 description = "Format code with Prettier"
-run = "bunx prettier --write ."
+run = "bun run format"
 
 [tasks."format:check"]
 description = "Check code formatting"
-run = "bunx prettier --check ."
+run = "bun run format:check"
 
 [tasks.typecheck]
 description = "Run TypeScript type checking"
-run = "bunx tsc --noEmit"
+run = "bun run typecheck"
 
 [tasks.check]
 description = "Run all checks (type, lint, format)"
@@ -88,31 +88,31 @@ depends = ["typecheck", "lint", "format:check"]
 
 [tasks."db:generate"]
 description = "Generate database migrations"
-run = "bunx drizzle-kit generate:sqlite"
+run = "bun run db:generate"
 
 [tasks."db:push"]
 description = "Push database changes"
-run = "bunx drizzle-kit push:sqlite"
+run = "bun run db:push"
 
 [tasks."db:studio"]
 description = "Open Drizzle Studio"
-run = "bunx drizzle-kit studio"
+run = "bun run db:studio"
 
 [tasks."db:migrate"]
 description = "Run database migrations"
-run = "bun src/main/db/migrate.ts"
+run = "bun run db:migrate"
 depends = ["db:generate"]
 
 [tasks.clean]
-description = "Clean build artifacts"
+description = "Clean build artifacts (OS command)"
 run = "rm -rf dist dist-electron"
 
 [tasks."clean:all"]
-description = "Clean everything including dependencies"
+description = "Clean everything including dependencies (OS command)"
 run = "rm -rf dist dist-electron node_modules .bun bun.lockb"
 
 [tasks."clean:cache"]
-description = "Clean Bun cache"
+description = "Clean Bun cache (OS command)"
 run = "rm -rf .bun ~/.bun/cache"
 
 [tasks.dist]
@@ -137,12 +137,12 @@ depends = ["build"]
 
 [tasks.electron]
 description = "Run Electron (production mode)"
-run = "bunx electron ."
+run = "bun run electron"
 depends = ["build"]
 
 [tasks."electron:dev"]
 description = "Run Electron (development mode)"
-run = "NODE_ENV=development bunx electron . --dev"
+run = "bun run electron:dev"
 env = { NODE_ENV = "development", ELECTRON_IS_DEV = "1" }
 
 [tasks.update]
