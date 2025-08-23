@@ -54,7 +54,7 @@ process.env.NODE_ENV = 'test';
 process.env.VITE_DEV_SERVER_URL = undefined;
 
 // Global test utilities
-global.testUtils = {
+(global as any).testUtils = {
   createMockEvent: () => ({
     sender: {
       send: vi.fn(),

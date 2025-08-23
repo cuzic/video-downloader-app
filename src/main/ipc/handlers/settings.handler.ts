@@ -71,7 +71,7 @@ export const settingsHandlers = [
       // Reinitialize with defaults
       const initHandler = settingsHandlers.find(h => h.channel === 'app:settings:initialize');
       if (initHandler) {
-        await initHandler.handler(_event);
+        await initHandler.handler(_event, undefined as any, undefined as any);
       }
       
       // Broadcast reset event

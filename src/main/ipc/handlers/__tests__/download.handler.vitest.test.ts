@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { IpcMainInvokeEvent } from 'electron';
 import { downloadHandlers } from '../download.handler';
 import { DOWNLOAD_CHANNELS } from '@/shared/constants/channels';
@@ -48,7 +48,7 @@ describe('Download Handlers', () => {
         saveDir: '/downloads',
       };
 
-      const result = await startHandler.handler(mockEvent, spec);
+      const result = await startHandler.handler(mockEvent, spec as any);
 
       expect(result).toEqual({ id: 'test-task-id' });
     });
@@ -63,7 +63,7 @@ describe('Download Handlers', () => {
     const pauseHandler = downloadHandlers.find(h => h.channel === DOWNLOAD_CHANNELS.PAUSE)!;
 
     it('should pause a download', async () => {
-      await pauseHandler.handler(mockEvent, 'test-task-id');
+      await pauseHandler.handler(mockEvent, 'test-task-id' as any);
       
       const { broadcast } = await import('../../utils/performance');
       expect(broadcast).toHaveBeenCalledWith(DOWNLOAD_CHANNELS.ON_PAUSED, { taskId: 'test-task-id' });
@@ -79,7 +79,7 @@ describe('Download Handlers', () => {
     const resumeHandler = downloadHandlers.find(h => h.channel === DOWNLOAD_CHANNELS.RESUME)!;
 
     it('should resume a download', async () => {
-      await resumeHandler.handler(mockEvent, 'test-task-id');
+      await resumeHandler.handler(mockEvent, 'test-task-id' as any);
       
       const { broadcast } = await import('../../utils/performance');
       expect(broadcast).toHaveBeenCalledWith(DOWNLOAD_CHANNELS.ON_RESUMED, { taskId: 'test-task-id' });
@@ -90,7 +90,7 @@ describe('Download Handlers', () => {
     const cancelHandler = downloadHandlers.find(h => h.channel === DOWNLOAD_CHANNELS.CANCEL)!;
 
     it('should cancel a download', async () => {
-      await cancelHandler.handler(mockEvent, 'test-task-id');
+      await cancelHandler.handler(mockEvent, 'test-task-id' as any);
       
       const { broadcast } = await import('../../utils/performance');
       expect(broadcast).toHaveBeenCalledWith(DOWNLOAD_CHANNELS.ON_CANCELED, { taskId: 'test-task-id' });
@@ -101,7 +101,7 @@ describe('Download Handlers', () => {
     const listHandler = downloadHandlers.find(h => h.channel === DOWNLOAD_CHANNELS.LIST_TASKS)!;
 
     it('should return empty array when no tasks', async () => {
-      const result = await listHandler.handler(mockEvent);
+      const result = await listHandler.handler(mockEvent, undefined as any);
       expect(result).toEqual([]);
     });
   });

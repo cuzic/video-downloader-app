@@ -41,7 +41,7 @@ describe('TaskRepository', () => {
       logDownloadEvent: vi.fn(),
     } as unknown as AuditLogRepository;
     
-    taskRepo = new TaskRepository(mockAuditLogRepo);
+    taskRepo = new TaskRepository('/default/save/dir');
   });
 
   afterEach(() => {

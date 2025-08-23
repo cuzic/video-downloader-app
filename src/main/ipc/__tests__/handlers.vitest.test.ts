@@ -41,7 +41,15 @@ function getHandler(
 }
 
 describe('Download Handlers', () => {
-  let mockTaskRepo: ReturnType<typeof vi.fn>;
+  let mockTaskRepo: {
+    create: ReturnType<typeof vi.fn>;
+    pause: ReturnType<typeof vi.fn>;
+    resume: ReturnType<typeof vi.fn>;
+    cancel: ReturnType<typeof vi.fn>;
+    retry: ReturnType<typeof vi.fn>;
+    getAll: ReturnType<typeof vi.fn>;
+    getById: ReturnType<typeof vi.fn>;
+  };
   let mockEvent: IpcMainInvokeEvent;
 
   beforeEach(() => {
