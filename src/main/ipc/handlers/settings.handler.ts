@@ -30,13 +30,8 @@ export const settingsHandlers = [
     channel: SETTINGS_CHANNELS.GET_ALL,
     handler: wrapHandler(async (_event: IpcMainInvokeEvent): Promise<Partial<AppSettings>> => {
       const settings = await settingsRepo.getAll();
-      const result: Partial<AppSettings> = {};
-      
-      settings.forEach((setting: any) => {
-        result[setting.key as keyof AppSettings] = setting.value;
-      });
-      
-      return result;
+      // getAll() returns Record<string, any>, so we just need to cast it
+      return settings as Partial<AppSettings>;
     }),
   },
   {
@@ -76,7 +71,7 @@ export const settingsHandlers = [
       // Reinitialize with defaults
       const initHandler = settingsHandlers.find(h => h.channel === 'app:settings:initialize');
       if (initHandler) {
-        await (initHandler.handler as any)(_event);
+        await initHandler.handler(_event);
       }
       
       // Broadcast reset event

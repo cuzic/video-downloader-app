@@ -8,6 +8,16 @@ import { RepositoryFactory } from '../../db/repositories';
 
 const taskRepo = RepositoryFactory.createTaskRepository();
 
+// Helper function for safe JSON parsing
+function safeJsonParse<T = any>(str: string | null | undefined): T | undefined {
+  if (!str) return undefined;
+  try {
+    return JSON.parse(str);
+  } catch {
+    return undefined;
+  }
+}
+
 export const downloadHandlers = [
   {
     channel: DOWNLOAD_CHANNELS.START,
@@ -82,14 +92,14 @@ export const downloadHandlers = [
           type: task.mediaType as any,
           filename: task.filename || undefined,
           saveDir: task.saveDir || undefined,
-          headers: task.headers ? JSON.parse(task.headers) : undefined,
-          variant: task.variant ? JSON.parse(task.variant) : undefined,
+          headers: safeJsonParse(task.headers),
+          variant: safeJsonParse(task.variant),
           retry: undefined, // TODO: Parse from task
           priority: task.priority,
-          qualityRule: task.qualityRule ? JSON.parse(task.qualityRule) : undefined,
-          metadata: task.metadata ? JSON.parse(task.metadata as string) : undefined,
+          qualityRule: safeJsonParse(task.qualityRule),
+          metadata: task.metadata || undefined,
         },
-        status: task.status as any,
+        status: task.status as DownloadTaskDTO['status'],
         progress: {
           percent: task.percent || undefined,
           downloadedBytes: task.downloadedBytes || 0,
@@ -100,7 +110,7 @@ export const downloadHandlers = [
         error: task.errorCode ? {
           code: task.errorCode,
           message: task.errorMessage || '',
-          details: task.errorDetails ? JSON.parse(task.errorDetails) : undefined,
+          details: safeJsonParse(task.errorDetails),
           retryable: true,
           attempt: task.retryCount,
         } : undefined,
@@ -125,14 +135,14 @@ export const downloadHandlers = [
           type: task.mediaType as any,
           filename: task.filename || undefined,
           saveDir: task.saveDir || undefined,
-          headers: task.headers ? JSON.parse(task.headers) : undefined,
-          variant: task.variant ? JSON.parse(task.variant) : undefined,
+          headers: safeJsonParse(task.headers),
+          variant: safeJsonParse(task.variant),
           retry: undefined,
           priority: task.priority,
-          qualityRule: task.qualityRule ? JSON.parse(task.qualityRule) : undefined,
-          metadata: task.metadata ? JSON.parse(task.metadata as string) : undefined,
+          qualityRule: safeJsonParse(task.qualityRule),
+          metadata: task.metadata || undefined,
         },
-        status: task.status as any,
+        status: task.status as DownloadTaskDTO['status'],
         progress: {
           percent: task.percent || undefined,
           downloadedBytes: task.downloadedBytes || 0,
@@ -143,7 +153,7 @@ export const downloadHandlers = [
         error: task.errorCode ? {
           code: task.errorCode,
           message: task.errorMessage || '',
-          details: task.errorDetails ? JSON.parse(task.errorDetails) : undefined,
+          details: safeJsonParse(task.errorDetails),
           retryable: true,
           attempt: task.retryCount,
         } : undefined,

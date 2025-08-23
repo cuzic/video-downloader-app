@@ -66,12 +66,35 @@ export function sanitizeString(input: string, maxLength: number = 1000): string 
     .trim();
 }
 
-export function sanitizeFilename(filename: string): string {
-  return filename
+export function sanitizeFilename(filename: string, maxLength: number = 255): string {
+  // First, sanitize the filename
+  let sanitized = filename
     .replace(/[<>:"/\\|?*\x00-\x1F]/g, '_')
     .replace(/^\.+/, '')
-    .replace(/\.+$/, '')
-    .substring(0, 255);
+    .replace(/\.+$/, '');
+  
+  // If the filename is too long, truncate while preserving extension
+  if (sanitized.length > maxLength) {
+    const lastDotIndex = sanitized.lastIndexOf('.');
+    if (lastDotIndex > 0 && lastDotIndex < sanitized.length - 1) {
+      // Has extension
+      const extension = sanitized.substring(lastDotIndex);
+      const nameWithoutExt = sanitized.substring(0, lastDotIndex);
+      const maxNameLength = maxLength - extension.length;
+      
+      if (maxNameLength > 0) {
+        sanitized = nameWithoutExt.substring(0, maxNameLength) + extension;
+      } else {
+        // Extension itself is too long, just truncate
+        sanitized = sanitized.substring(0, maxLength);
+      }
+    } else {
+      // No extension, just truncate
+      sanitized = sanitized.substring(0, maxLength);
+    }
+  }
+  
+  return sanitized;
 }
 
 export function sanitizePath(path: string): string {

@@ -7,12 +7,8 @@ import {
   RateLimiter,
 } from '../utils/performance';
 
-// Mock Electron modules
-vi.mock('electron', () => ({
-  BrowserWindow: {
-    getAllWindows: vi.fn(() => []),
-  },
-}));
+// Mock Electron modules - uses centralized mock
+vi.mock('electron');
 
 describe('Performance Utilities', () => {
   beforeEach(() => {

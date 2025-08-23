@@ -176,12 +176,13 @@ describe('Sanitization Functions', () => {
       expect(result).toBe('file.txt');
     });
 
-    it('should limit filename length to 255 characters', () => {
+    it('should limit filename length to 255 characters while preserving extension', () => {
       const input = 'a'.repeat(300) + '.txt';
       const result = sanitizeFilename(input);
       expect(result.length).toBeLessThanOrEqual(255);
-      // Note: Current implementation truncates at 255 chars, doesn't preserve extension
-      expect(result).toBe('a'.repeat(255));
+      // Should preserve the .txt extension
+      expect(result.endsWith('.txt')).toBe(true);
+      expect(result).toBe('a'.repeat(251) + '.txt');
     });
   });
 
