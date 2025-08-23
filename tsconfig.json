@@ -17,6 +17,8 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noUncheckedIndexedAccess": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
@@ -25,7 +27,7 @@
       "@shared/*": ["src/shared/*"],
       "@preload/*": ["src/preload/*"]
     },
-    "types": ["vite/client", "node"]
+    "types": ["bun", "vite/client", "node"]
   },
   "include": [
     "src/**/*",
