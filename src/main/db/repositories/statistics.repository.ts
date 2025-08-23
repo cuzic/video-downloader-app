@@ -37,8 +37,12 @@ export class StatisticsRepository {
         target: statistics.date,
         set: {
           totalDownloads: sql`${statistics.totalDownloads} + 1`,
+          // Type casting is necessary due to Drizzle ORM's SQL template literal type inference
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           completedCount: isCompleted ? sql`${statistics.completedCount} + 1` as any : statistics.completedCount as any,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           errorCount: isError ? sql`${statistics.errorCount} + 1` as any : statistics.errorCount as any,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           canceledCount: isCanceled ? sql`${statistics.canceledCount} + 1` as any : statistics.canceledCount as any,
           totalBytes: sql`${statistics.totalBytes} + ${bytes}`,
           totalTimeMs: sql`${statistics.totalTimeMs} + ${timeMs}`,

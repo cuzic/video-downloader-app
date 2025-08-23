@@ -9,6 +9,7 @@ import { RepositoryFactory } from '../../db/repositories';
 const taskRepo = RepositoryFactory.createTaskRepository();
 
 // Helper function for safe JSON parsing
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function safeJsonParse<T = any>(str: string | null | undefined): T | undefined {
   if (!str) return undefined;
   try {
