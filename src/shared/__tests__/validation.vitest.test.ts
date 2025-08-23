@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { 
+import {
   sanitizeFilename,
   sanitizeString,
   sanitizePath,
   validateInput,
   urlSchema,
-  downloadSpecSchema
+  downloadSpecSchema,
 } from '../validation';
 
 describe('validation utilities', () => {

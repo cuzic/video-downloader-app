@@ -1,111 +1,180 @@
 import { z } from 'zod';
 
-/**
- * Validation schemas for IPC communication
- */
+// ============================================================================
+// Basic Validators
+// ============================================================================
 
-// Download operations
-export const downloadSpecSchema = z.object({
-  url: z.string().url().max(2048),
-  outputPath: z.string().max(500),
-  quality: z.enum(['best', 'high', 'medium', 'low']).optional(),
-  format: z.enum(['mp4', 'webm', 'mkv', 'mp3', 'aac']).optional(),
-  headers: z.record(z.string()).optional(),
-});
+export const taskIdSchema = z.string().uuid('Invalid task ID format');
 
-export const taskIdSchema = z.string().uuid();
+export const urlSchema = z.string().url('Invalid URL format');
 
-// Settings operations
-export const settingKeySchema = z.string().max(100).regex(/^[a-zA-Z0-9._-]+$/);
+export const filePathSchema = z.string().min(1, 'File path cannot be empty');
 
-export const settingValueSchema = z.union([
-  z.string().max(1000),
-  z.number(),
-  z.boolean(),
-  z.array(z.string()).max(100),
-  z.record(z.string()),
-]);
-
-// System operations
 export const systemPathNameSchema = z.enum(['home', 'downloads', 'documents', 'videos']);
 
-export const filePathSchema = z.string().max(500).refine((path) => {
-  // Basic path validation - more comprehensive validation in main process
-  return !path.includes('\0') && !path.includes('..') && path.length > 0;
-}, {
-  message: 'Invalid file path',
+// ============================================================================
+// Download Validators
+// ============================================================================
+
+export const mediaTypeSchema = z.enum(['video', 'audio', 'image', 'document', 'other']);
+
+export const downloadStatusSchema = z.enum([
+  'pending',
+  'downloading',
+  'paused',
+  'completed',
+  'failed',
+  'canceled',
+]);
+
+export const videoVariantSchema = z.object({
+  format: z.string(),
+  quality: z.string().optional(),
+  resolution: z.string().optional(),
+  fps: z.number().optional(),
+  bitrate: z.number().optional(),
+  codec: z.string().optional(),
+  size: z.number().optional(),
 });
 
-export const urlSchema = z.string().url().max(2048).refine((url) => {
-  // Only allow http and https protocols
-  return url.startsWith('http://') || url.startsWith('https://');
-}, {
-  message: 'Only HTTP and HTTPS URLs are allowed',
+export const audioVariantSchema = z.object({
+  format: z.string(),
+  quality: z.string().optional(),
+  bitrate: z.number().optional(),
+  codec: z.string().optional(),
+  sampleRate: z.number().optional(),
+  channels: z.number().optional(),
 });
 
-// DRM detection
+export const qualityRuleSchema = z.object({
+  preferredQuality: z.string().optional(),
+  maxQuality: z.string().optional(),
+  minQuality: z.string().optional(),
+  preferredFormat: z.string().optional(),
+  avoidFormats: z.array(z.string()).optional(),
+});
+
+export const retryConfigSchema = z.object({
+  maxAttempts: z.number().min(0).max(10).default(3),
+  delayMs: z.number().min(0).default(1000),
+  backoffMultiplier: z.number().min(1).default(2),
+});
+
+export const downloadSpecSchema = z.object({
+  url: urlSchema,
+  type: mediaTypeSchema,
+  filename: z.string().optional(),
+  saveDir: filePathSchema,
+  headers: z.record(z.string()).optional(),
+  variant: z.union([videoVariantSchema, audioVariantSchema]).optional(),
+  retry: retryConfigSchema.optional(),
+  priority: z.number().min(0).max(10).default(5),
+  qualityRule: qualityRuleSchema.optional(),
+  metadata: z.record(z.any()).optional(),
+});
+
+export const downloadProgressSchema = z.object({
+  percent: z.number().min(0).max(100).optional(),
+  downloadedBytes: z.number().min(0),
+  totalBytes: z.number().min(0).optional(),
+  speedBps: z.number().min(0).optional(),
+  etaMs: z.number().min(0).optional(),
+});
+
+export const downloadErrorSchema = z.object({
+  code: z.string(),
+  message: z.string(),
+  details: z.any().optional(),
+  retryable: z.boolean(),
+  attempt: z.number().optional(),
+});
+
+// ============================================================================
+// Settings Validators
+// ============================================================================
+
+export const themeSchema = z.enum(['light', 'dark', 'system']);
+
+export const languageSchema = z.enum(['en', 'ja', 'zh', 'ko', 'es', 'fr', 'de']);
+
+export const windowStateSchema = z.object({
+  width: z.number().min(600),
+  height: z.number().min(400),
+  x: z.number().optional(),
+  y: z.number().optional(),
+  maximized: z.boolean().optional(),
+  fullscreen: z.boolean().optional(),
+});
+
+export const appSettingsSchema = z.object({
+  downloadPath: z.string(),
+  maxConcurrentDownloads: z.number().min(1).max(10),
+  autoStart: z.boolean(),
+  notifications: z.boolean(),
+  theme: themeSchema,
+  language: languageSchema,
+  windowState: windowStateSchema,
+  proxy: z
+    .object({
+      enabled: z.boolean(),
+      protocol: z.enum(['http', 'https', 'socks4', 'socks5']).optional(),
+      host: z.string().optional(),
+      port: z.number().min(1).max(65535).optional(),
+      auth: z
+        .object({
+          username: z.string(),
+          password: z.string(),
+        })
+        .optional(),
+    })
+    .optional(),
+  advanced: z
+    .object({
+      enableHardwareAcceleration: z.boolean(),
+      enableDevTools: z.boolean(),
+      logLevel: z.enum(['error', 'warn', 'info', 'debug']),
+      maxRetries: z.number().min(0).max(10),
+      retryDelay: z.number().min(0),
+      connectionTimeout: z.number().min(1000),
+      chunkSize: z.number().min(1024),
+      userAgent: z.string().optional(),
+    })
+    .optional(),
+});
+
+// ============================================================================
+// Detection Validators
+// ============================================================================
+
+export const detectionSourceSchema = z.enum(['browser', 'clipboard', 'file', 'manual']);
+
+export const detectionSchema = z.object({
+  id: z.string(),
+  url: urlSchema,
+  type: mediaTypeSchema,
+  source: detectionSourceSchema,
+  title: z.string().optional(),
+  duration: z.number().optional(),
+  thumbnail: z.string().optional(),
+  variants: z.array(z.union([videoVariantSchema, audioVariantSchema])).optional(),
+  metadata: z.record(z.any()).optional(),
+  detectedAt: z.string().datetime(),
+});
+
 export const drmDetectionSchema = z.object({
-  type: z.string(),
-  url: z.string().url(),
-  keySystem: z.string().optional(),
-  manifestUrl: z.string().url().optional(),
+  detected: z.boolean(),
+  type: z.string().optional(),
+  url: urlSchema,
+  metadata: z.record(z.any()).optional(),
 });
 
-// Rate limiting
-export const rateLimitSchema = z.object({
-  maxRequests: z.number().min(1).max(1000),
-  windowMs: z.number().min(1000).max(3600000), // 1 second to 1 hour
-});
+// ============================================================================
+// Helper Functions
+// ============================================================================
 
-// Sanitization helpers
-export function sanitizeString(input: string, maxLength: number = 1000): string {
-  return input
-    .substring(0, maxLength)
-    .replace(/[<>]/g, '') // Remove potential HTML tags
-    .replace(/[\x00-\x1F\x7F]/g, '') // Remove control characters
-    .trim();
-}
-
-export function sanitizeFilename(filename: string, maxLength: number = 255): string {
-  // First, sanitize the filename
-  let sanitized = filename
-    .replace(/[<>:"/\\|?*\x00-\x1F]/g, '_')
-    .replace(/^\.+/, '')
-    .replace(/\.+$/, '');
-  
-  // If the filename is too long, truncate while preserving extension
-  if (sanitized.length > maxLength) {
-    const lastDotIndex = sanitized.lastIndexOf('.');
-    if (lastDotIndex > 0 && lastDotIndex < sanitized.length - 1) {
-      // Has extension
-      const extension = sanitized.substring(lastDotIndex);
-      const nameWithoutExt = sanitized.substring(0, lastDotIndex);
-      const maxNameLength = maxLength - extension.length;
-      
-      if (maxNameLength > 0) {
-        sanitized = nameWithoutExt.substring(0, maxNameLength) + extension;
-      } else {
-        // Extension itself is too long, just truncate
-        sanitized = sanitized.substring(0, maxLength);
-      }
-    } else {
-      // No extension, just truncate
-      sanitized = sanitized.substring(0, maxLength);
-    }
-  }
-  
-  return sanitized;
-}
-
-export function sanitizePath(path: string): string {
-  // Remove null bytes and normalize slashes
-  return path
-    .replace(/\0/g, '')
-    .replace(/\\/g, '/')
-    .replace(/\/+/g, '/');
-}
-
-// Validation wrapper for IPC handlers
+/**
+ * Validate input against a schema
+ */
 export function validateInput<T>(
   schema: z.ZodSchema<T>,
   input: unknown
@@ -115,11 +184,58 @@ export function validateInput<T>(
     return { success: true, data };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { 
-        success: false, 
-        error: `Validation error: ${error.errors.map(e => e.message).join(', ')}` 
-      };
+      const messages = error.errors.map((e) => `${e.path.join('.')}: ${e.message}`);
+      return { success: false, error: messages.join(', ') };
     }
-    return { success: false, error: 'Unknown validation error' };
+    return { success: false, error: 'Validation failed' };
   }
 }
+
+/**
+ * Create a partial schema from a full schema
+ */
+export function partial<T extends z.ZodRawShape>(
+  schema: z.ZodObject<T>
+): z.ZodObject<{
+  [K in keyof T]: z.ZodOptional<T[K]>;
+}> {
+  return schema.partial();
+}
+
+/**
+ * Create a strict schema that doesn't allow extra properties
+ */
+export function strict<T extends z.ZodRawShape>(schema: z.ZodObject<T>): z.ZodObject<T, 'strict'> {
+  return schema.strict();
+}
+
+/**
+ * Sanitize file path to prevent directory traversal
+ */
+export function sanitizePath(path: string): string {
+  // Remove any directory traversal patterns
+  return path.replace(/\.\.[/\\]/g, '').replace(/^[/\\]+/, '');
+}
+
+/**
+ * Validate and sanitize filename
+ */
+export function sanitizeFilename(filename: string): string {
+  // Remove invalid characters for filenames
+  return filename.replace(/[<>:"/\\|?*\x00-\x1F]/g, '_');
+}
+
+// ============================================================================
+// Type Exports
+// ============================================================================
+
+export type DownloadSpec = z.infer<typeof downloadSpecSchema>;
+export type DownloadProgress = z.infer<typeof downloadProgressSchema>;
+export type DownloadError = z.infer<typeof downloadErrorSchema>;
+export type AppSettings = z.infer<typeof appSettingsSchema>;
+export type Detection = z.infer<typeof detectionSchema>;
+export type DrmDetection = z.infer<typeof drmDetectionSchema>;
+export type MediaType = z.infer<typeof mediaTypeSchema>;
+export type DownloadStatus = z.infer<typeof downloadStatusSchema>;
+export type Theme = z.infer<typeof themeSchema>;
+export type Language = z.infer<typeof languageSchema>;
