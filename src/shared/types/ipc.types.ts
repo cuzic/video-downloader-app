@@ -3,8 +3,6 @@ import type {
   DownloadProgress, 
   DownloadTask,
   AppSettings,
-  Detection,
-  VideoVariant,
 } from './index';
 
 // Event callback types

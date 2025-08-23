@@ -1,6 +1,6 @@
 import { db } from '../client';
 import { auditLogs } from '../schema';
-import { eq, desc, and, gte, inArray, sql } from 'drizzle-orm';
+import { eq, desc, and, gte, lte, inArray, sql } from 'drizzle-orm';
 import type { AuditLog, NewAuditLog } from '../schema/audit-logs';
 
 export class AuditLogRepository {
@@ -34,8 +34,8 @@ export class AuditLogRepository {
     await this.log('debug', category, event, message, context);
   }
 
-  async info(category: string, event: string, message?: string, context?: any): Promise<void> {
-    await this.log('info', category, event, message, context);
+  async info(category: string, event: string, message?: string, context?: any, userId?: string): Promise<void> {
+    await this.log('info', category, event, message, context, undefined, userId);
   }
 
   async warn(category: string, event: string, message?: string, context?: any): Promise<void> {
@@ -108,7 +108,7 @@ export class AuditLogRepository {
       .from(auditLogs)
       .where(and(
         gte(auditLogs.timestamp, startTime),
-        gte(endTime, auditLogs.timestamp)
+        lte(auditLogs.timestamp, endTime)
       ))
       .orderBy(auditLogs.timestamp);
   }
@@ -156,13 +156,13 @@ export class AuditLogRepository {
     }
     
     if (filters.endTime) {
-      conditions.push(gte(filters.endTime, auditLogs.timestamp));
+      conditions.push(lte(auditLogs.timestamp, filters.endTime));
     }
     
     let query = db.select().from(auditLogs);
     
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      query = query.where(and(...conditions)) as any;
     }
     
     return query
@@ -226,6 +226,6 @@ export class AuditLogRepository {
       key,
       oldValue,
       newValue,
-    }, undefined, userId);
+    }, userId);
   }
 }

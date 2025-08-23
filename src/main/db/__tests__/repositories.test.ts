@@ -1,7 +1,5 @@
 import { describe, it, expect, beforeEach, afterAll } from 'bun:test';
 import Database from 'better-sqlite3';
-import { drizzle } from 'drizzle-orm/better-sqlite3';
-import * as schema from '../schema';
 import {
   TaskRepository,
   SettingsRepository,
@@ -14,16 +12,15 @@ import {
 
 // Create in-memory database for testing
 const sqlite = new Database(':memory:');
-const db = drizzle(sqlite, { schema });
 
 // Mock electron app
-global.app = {
+(global as any).app = {
   getPath: (name: string) => {
     if (name === 'downloads') return '/tmp/downloads';
     if (name === 'userData') return '/tmp/userData';
     return '/tmp';
   },
-} as any;
+};
 
 // Initialize test database schema
 beforeEach(async () => {
@@ -314,7 +311,7 @@ describe('HistoryRepository', () => {
     
     const history = await historyRepo.getTaskHistory('task-1');
     expect(history.length).toBe(3);
-    expect(history[0].event).toBe('created');
+    expect(history[0]?.event).toBe('created');
   });
 
   it('should log specific event types', async () => {

@@ -10,15 +10,16 @@ export function throttle<T extends (...args: any[]) => any>(
   let inThrottle = false;
   let lastArgs: Parameters<T> | null = null;
   
-  return function throttled(...args: Parameters<T>): void {
+  return function throttled(this: any, ...args: Parameters<T>): void {
     if (!inThrottle) {
       func.apply(this, args);
       inThrottle = true;
       
+      const self = this;
       setTimeout(() => {
         inThrottle = false;
         if (lastArgs) {
-          throttled.apply(this, lastArgs);
+          throttled.apply(self, lastArgs);
           lastArgs = null;
         }
       }, limit);
@@ -37,13 +38,14 @@ export function debounce<T extends (...args: any[]) => any>(
 ): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout | null = null;
   
-  return function debounced(...args: Parameters<T>): void {
+  return function debounced(this: any, ...args: Parameters<T>): void {
     if (timeout) {
       clearTimeout(timeout);
     }
     
+    const self = this;
     timeout = setTimeout(() => {
-      func.apply(this, args);
+      func.apply(self, args);
       timeout = null;
     }, wait);
   };

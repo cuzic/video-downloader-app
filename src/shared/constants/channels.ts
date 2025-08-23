@@ -60,12 +60,18 @@ export const SETTINGS_CHANNELS = {
 // System channels
 export const SYSTEM_CHANNELS = {
   // Commands
-  REVEAL_IN_FOLDER: 'app:system:reveal-in-folder',
-  OPEN_EXTERNAL: 'app:system:open-external',
+  GET_PATH: 'app:system:getPath',
   GET_PATHS: 'app:system:get-paths',
+  OPEN_PATH: 'app:system:openPath',
+  SHOW_ITEM_IN_FOLDER: 'app:system:showItemInFolder',
+  OPEN_EXTERNAL: 'app:system:openExternal',
+  GET_VERSION: 'app:system:getVersion',
   GET_INFO: 'app:system:get-info',
-  SHOW_SAVE_DIALOG: 'app:system:show-save-dialog',
-  SHOW_OPEN_DIALOG: 'app:system:show-open-dialog',
+  CHECK_FILE_EXISTS: 'app:system:checkFileExists',
+  SELECT_DIRECTORY: 'app:system:selectDirectory',
+  SELECT_FILE: 'app:system:selectFile',
+  GET_FILE_INFO: 'app:system:getFileInfo',
+  TRASH_ITEM: 'app:system:trashItem',
   
   // Clipboard
   CLIPBOARD_WRITE_TEXT: 'app:clipboard:write-text',
