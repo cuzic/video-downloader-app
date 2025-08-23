@@ -72,6 +72,12 @@ temp/
 electron-builder.yml
 !electron-builder.config.js
 
+# Backup files
+*.backup.*
+package.backup.json
+*.bak
+*~
+
 # Package files
 *.dmg
 *.exe
