@@ -161,12 +161,7 @@ electron = "electron ."
 prepare = "husky"
 
 # Dependencies to always bundle
-[bundle]
-packages = [
-  "react",
-  "react-dom",
-  "zod"
-]
+# Note: Bundle configuration is handled in build settings above
 
 # Native modules handling
 [native]
