@@ -44,3 +44,19 @@ async function runCustomMigrations(): Promise<void> {
 export function closeDatabase(): void {
   sqlite.close();
 }
+
+// Transaction helper
+export async function transaction<T>(
+  callback: (tx: BetterSQLite3Database<typeof schema>) => Promise<T>
+): Promise<T> {
+  return await db.transaction(async (tx) => {
+    return await callback(tx);
+  });
+}
+
+// Batch operation helper
+export function batch<T>(operations: (() => T)[]): T[] {
+  return sqlite.transaction(() => {
+    return operations.map(op => op());
+  })();
+}
