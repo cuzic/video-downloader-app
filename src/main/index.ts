@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import { app, BrowserWindow, shell } from 'electron';
 import path from 'path';
 import { initializeDatabase, closeDatabase } from './db/client';
 import { registerIpcHandlers } from './ipc';
@@ -77,8 +77,9 @@ app.on('before-quit', () => {
 
 // Security: Prevent new window creation
 app.on('web-contents-created', (_, contents) => {
-  contents.on('new-window', (event) => {
-    event.preventDefault();
+  // Use setWindowOpenHandler instead of deprecated 'new-window' event
+  contents.setWindowOpenHandler(() => {
+    return { action: 'deny' };
   });
   
   // Prevent navigation to external URLs
