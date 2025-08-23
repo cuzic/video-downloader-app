@@ -2,6 +2,10 @@ import { app, BrowserWindow, shell } from 'electron';
 import path from 'path';
 import { initializeDatabase, closeDatabase } from './db/client';
 import { registerIpcHandlers } from './ipc';
+import { applyCSP } from './security/csp';
+import { PathValidator } from './security/path-validator';
+import { DRMDetector } from './security/drm-detector';
+import { LegalConsentManager } from './security/legal-consent';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling
 if (require('electron-squirrel-startup')) {
@@ -11,7 +15,7 @@ if (require('electron-squirrel-startup')) {
 let mainWindow: BrowserWindow | null = null;
 
 function createWindow(): void {
-  // Create the browser window
+  // Create the browser window with comprehensive security flags
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
@@ -21,6 +25,16 @@ function createWindow(): void {
       nodeIntegration: false,
       sandbox: true,
       webSecurity: true,
+      allowRunningInsecureContent: false,
+      experimentalFeatures: false,
+      enableBlinkFeatures: '',
+      webviewTag: false,
+      navigateOnDragDrop: false,
+      autoplayPolicy: 'user-gesture-required',
+      disableDialogs: false,
+      safeDialogs: true,
+      safeDialogsMessage: 'Electron Security Warning',
+      disableHtmlFullscreenWindowResize: true,
     },
     icon: path.join(__dirname, '../../public/icon.png'),
     titleBarStyle: 'hiddenInset',
@@ -46,6 +60,19 @@ function createWindow(): void {
 
 // This method will be called when Electron has finished initialization
 void app.whenReady().then(async () => {
+  // Apply Content Security Policy
+  applyCSP();
+  
+  // Initialize path validator
+  PathValidator.initialize();
+  
+  // Check for legal consent on first launch
+  const hasConsent = await LegalConsentManager.checkAndPromptConsent();
+  if (!hasConsent) {
+    app.quit();
+    return;
+  }
+  
   // Initialize database
   await initializeDatabase();
   
@@ -54,6 +81,11 @@ void app.whenReady().then(async () => {
   
   // Create window
   createWindow();
+  
+  // Apply DRM detection to main window
+  if (mainWindow) {
+    DRMDetector.injectDRMDetectionScript(mainWindow);
+  }
 
   // On macOS, re-create window when dock icon is clicked
   app.on('activate', () => {
@@ -75,8 +107,13 @@ app.on('before-quit', () => {
   closeDatabase();
 });
 
-// Security: Prevent new window creation
+// Security: Prevent new window creation and enhance security
 app.on('web-contents-created', (_, contents) => {
+  // Prevent webview creation
+  contents.on('will-attach-webview', (event) => {
+    event.preventDefault();
+  });
+  
   // Use setWindowOpenHandler instead of deprecated 'new-window' event
   contents.setWindowOpenHandler(() => {
     return { action: 'deny' };
@@ -85,8 +122,43 @@ app.on('web-contents-created', (_, contents) => {
   // Prevent navigation to external URLs
   contents.on('will-navigate', (event, url) => {
     const parsedUrl = new URL(url);
-    if (parsedUrl.origin !== 'http://localhost:5173' && parsedUrl.origin !== 'file://') {
+    const allowedOrigins = process.env.NODE_ENV === 'development' 
+      ? ['http://localhost:5173']
+      : ['file://'];
+    
+    const isAllowed = allowedOrigins.some(origin => {
+      if (origin === 'file://') {
+        return parsedUrl.protocol === 'file:';
+      }
+      return parsedUrl.origin === origin;
+    });
+    
+    if (!isAllowed) {
       event.preventDefault();
+    }
+  });
+  
+  // Handle permission requests
+  contents.session.setPermissionRequestHandler((_webContents, permission, callback) => {
+    // Deny all permission requests by default
+    const deniedPermissions = [
+      'media',
+      'geolocation',
+      'notifications',
+      'midiSysex',
+      'pointerLock',
+      'fullscreen',
+      'openExternal',
+      'hid',
+      'serial',
+      'usb'
+    ];
+    
+    if (deniedPermissions.includes(permission)) {
+      callback(false);
+    } else {
+      // Allow clipboard operations
+      callback(permission === 'clipboard-read' || permission === 'clipboard-sanitized-write');
     }
   });
 });

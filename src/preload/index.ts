@@ -4,25 +4,60 @@ import type {
   DownloadTaskDTO, 
   AppSettings 
 } from '@/shared/types';
+import {
+  downloadSpecSchema,
+  taskIdSchema,
+  systemPathNameSchema,
+  filePathSchema,
+  urlSchema,
+  drmDetectionSchema,
+  validateInput,
+  sanitizePath,
+} from '../shared/validation';
 
 // Define the API exposed to the renderer process
 const api = {
   // Download operations
   download: {
-    start: (spec: DownloadSpec) => 
-      ipcRenderer.invoke('app:download:start', spec),
+    start: async (spec: DownloadSpec) => {
+      const validation = validateInput(downloadSpecSchema, spec);
+      if (!validation.success) {
+        throw new Error(validation.error);
+      }
+      return ipcRenderer.invoke('app:download:start', validation.data);
+    },
     
-    pause: (taskId: string) => 
-      ipcRenderer.invoke('app:download:pause', taskId),
+    pause: async (taskId: string) => {
+      const validation = validateInput(taskIdSchema, taskId);
+      if (!validation.success) {
+        throw new Error(validation.error);
+      }
+      return ipcRenderer.invoke('app:download:pause', validation.data);
+    },
     
-    resume: (taskId: string) => 
-      ipcRenderer.invoke('app:download:resume', taskId),
+    resume: async (taskId: string) => {
+      const validation = validateInput(taskIdSchema, taskId);
+      if (!validation.success) {
+        throw new Error(validation.error);
+      }
+      return ipcRenderer.invoke('app:download:resume', validation.data);
+    },
     
-    cancel: (taskId: string) => 
-      ipcRenderer.invoke('app:download:cancel', taskId),
+    cancel: async (taskId: string) => {
+      const validation = validateInput(taskIdSchema, taskId);
+      if (!validation.success) {
+        throw new Error(validation.error);
+      }
+      return ipcRenderer.invoke('app:download:cancel', validation.data);
+    },
     
-    retry: (taskId: string) => 
-      ipcRenderer.invoke('app:download:retry', taskId),
+    retry: async (taskId: string) => {
+      const validation = validateInput(taskIdSchema, taskId);
+      if (!validation.success) {
+        throw new Error(validation.error);
+      }
+      return ipcRenderer.invoke('app:download:retry', validation.data);
+    },
     
     list: (): Promise<DownloadTaskDTO[]> => 
       ipcRenderer.invoke('app:download:list'),
@@ -74,32 +109,68 @@ const api = {
   
   // System operations
   system: {
-    getPath: (name: 'home' | 'downloads' | 'documents' | 'videos'): Promise<string> => 
-      ipcRenderer.invoke('app:system:getPath', name),
+    getPath: async (name: 'home' | 'downloads' | 'documents' | 'videos'): Promise<string> => {
+      const validation = validateInput(systemPathNameSchema, name);
+      if (!validation.success) {
+        throw new Error(validation.error);
+      }
+      return ipcRenderer.invoke('app:system:getPath', validation.data);
+    },
     
-    openPath: (filePath: string) => 
-      ipcRenderer.invoke('app:system:openPath', filePath),
+    openPath: async (filePath: string) => {
+      const sanitized = sanitizePath(filePath);
+      const validation = validateInput(filePathSchema, sanitized);
+      if (!validation.success) {
+        throw new Error(validation.error);
+      }
+      return ipcRenderer.invoke('app:system:openPath', validation.data);
+    },
     
-    showItemInFolder: (filePath: string) => 
-      ipcRenderer.invoke('app:system:showItemInFolder', filePath),
+    showItemInFolder: async (filePath: string) => {
+      const sanitized = sanitizePath(filePath);
+      const validation = validateInput(filePathSchema, sanitized);
+      if (!validation.success) {
+        throw new Error(validation.error);
+      }
+      return ipcRenderer.invoke('app:system:showItemInFolder', validation.data);
+    },
     
-    openExternal: (url: string) => 
-      ipcRenderer.invoke('app:system:openExternal', url),
+    openExternal: async (url: string) => {
+      const validation = validateInput(urlSchema, url);
+      if (!validation.success) {
+        throw new Error(validation.error);
+      }
+      return ipcRenderer.invoke('app:system:openExternal', validation.data);
+    },
     
     getVersion: (): Promise<string> => 
       ipcRenderer.invoke('app:system:getVersion'),
     
-    checkFileExists: (filePath: string): Promise<boolean> => 
-      ipcRenderer.invoke('app:system:checkFileExists', filePath),
+    checkFileExists: async (filePath: string): Promise<boolean> => {
+      const sanitized = sanitizePath(filePath);
+      const validation = validateInput(filePathSchema, sanitized);
+      if (!validation.success) {
+        throw new Error(validation.error);
+      }
+      return ipcRenderer.invoke('app:system:checkFileExists', validation.data);
+    },
   },
   
-  // Media detection (to be implemented)
+  // Media detection
   detection: {
     onDetected: (callback: (candidate: any) => void) => {
       const handler = (_: any, candidate: any) => callback(candidate);
       ipcRenderer.on('on:detection:found', handler);
       return () => ipcRenderer.removeListener('on:detection:found', handler);
     },
+  },
+  
+  // DRM detection
+  drmDetected: (data: any) => {
+    const validation = validateInput(drmDetectionSchema, data);
+    if (validation.success) {
+      ipcRenderer.send('app:drm:detected', validation.data);
+    }
   },
 };
 

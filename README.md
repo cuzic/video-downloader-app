@@ -7,8 +7,10 @@ A modern Electron application for downloading HLS/DASH video streams, built with
 - HLS/DASH stream detection and downloading
 - Smart naming system with customizable templates
 - SQLite database with Drizzle ORM
-- Secure architecture with proper IPC isolation
+- Comprehensive security foundation with CSP, input validation, and sandboxing
 - DRM protection detection and blocking
+- Path validation and SSRF prevention
+- Legal compliance with consent management
 - Batch download management
 - Progress tracking with pause/resume support
 
@@ -102,6 +104,20 @@ bun scripts/dev.ts   # Start development server
 bun scripts/build.ts # Build for production
 bun scripts/test.ts  # Run tests
 ```
+
+## Security
+
+This application implements comprehensive security measures:
+
+- **Content Security Policy (CSP)**: Strict policies to prevent XSS attacks
+- **Process Isolation**: Complete separation between main and renderer processes
+- **Input Validation**: All IPC inputs validated with Zod schemas
+- **Path Security**: Prevention of directory traversal and path injection
+- **Network Security**: SSRF prevention and URL validation
+- **DRM Protection**: Detection and blocking of DRM-protected content
+- **Legal Compliance**: Consent management for terms of use
+
+For detailed security information, see [docs/SECURITY.md](docs/SECURITY.md).
 
 ## Configuration
 
