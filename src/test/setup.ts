@@ -1,53 +1,7 @@
 import { vi } from 'vitest';
 
-// Mock electron module
-vi.mock('electron', () => ({
-  app: {
-    getName: vi.fn(() => 'video-downloader'),
-    getVersion: vi.fn(() => '0.1.0'),
-    getPath: vi.fn((name: string) => `/mock/path/${name}`),
-    quit: vi.fn(),
-    relaunch: vi.fn(),
-    isPackaged: false,
-    whenReady: vi.fn(() => Promise.resolve()),
-  },
-  ipcMain: {
-    handle: vi.fn(),
-    on: vi.fn(),
-    removeHandler: vi.fn(),
-  },
-  ipcRenderer: {
-    invoke: vi.fn(),
-    on: vi.fn(),
-    send: vi.fn(),
-  },
-  BrowserWindow: vi.fn(() => ({
-    loadURL: vi.fn(),
-    loadFile: vi.fn(),
-    webContents: {
-      send: vi.fn(),
-      openDevTools: vi.fn(),
-    },
-    on: vi.fn(),
-    once: vi.fn(),
-    show: vi.fn(),
-    close: vi.fn(),
-    destroy: vi.fn(),
-    isDestroyed: vi.fn(() => false),
-    setMenu: vi.fn(),
-  })),
-  dialog: {
-    showOpenDialog: vi.fn(),
-    showSaveDialog: vi.fn(),
-    showMessageBox: vi.fn(),
-    showErrorBox: vi.fn(),
-  },
-  shell: {
-    openExternal: vi.fn(),
-    openPath: vi.fn(),
-    showItemInFolder: vi.fn(),
-  },
-}));
+// Use the manual mock from __mocks__ directory
+vi.mock('electron');
 
 // Setup test environment variables
 process.env.NODE_ENV = 'test';
