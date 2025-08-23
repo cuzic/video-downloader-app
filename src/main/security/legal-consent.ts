@@ -64,8 +64,8 @@ By agreeing to these terms, you acknowledge that:
     const isJapanese = locale.startsWith('ja');
     const consentText = isJapanese ? this.consentText.ja : this.consentText.en;
     
-    const result = await dialog.showMessageBox(parentWindow || null, {
-      type: 'warning',
+    const options = {
+      type: 'warning' as const,
       title: isJapanese ? '利用規約への同意' : 'Terms of Use Agreement',
       message: isJapanese ? '利用規約' : 'Terms of Use',
       detail: consentText,
@@ -76,7 +76,11 @@ By agreeing to these terms, you acknowledge that:
       defaultId: 0,
       cancelId: 0,
       noLink: true,
-    });
+    };
+    
+    const result = parentWindow 
+      ? await dialog.showMessageBox(parentWindow, options)
+      : await dialog.showMessageBox(options);
     
     const accepted = result.response === 1;
     
@@ -176,14 +180,20 @@ Please comply with copyright laws and each service's terms of use.`;
         const locale = app.getLocale();
         const isJapanese = locale.startsWith('ja');
         
-        await dialog.showMessageBox(parentWindow || null, {
-          type: 'info',
+        const exitOptions = {
+          type: 'info' as const,
           title: isJapanese ? 'アプリケーション終了' : 'Application Exit',
           message: isJapanese 
             ? '利用規約に同意いただけない場合、アプリケーションを使用することはできません。'
             : 'You cannot use this application without accepting the terms of use.',
           buttons: ['OK'],
-        });
+        };
+        
+        if (parentWindow) {
+          await dialog.showMessageBox(parentWindow, exitOptions);
+        } else {
+          await dialog.showMessageBox(exitOptions);
+        }
         
         return false;
       }

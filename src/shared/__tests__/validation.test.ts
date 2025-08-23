@@ -3,8 +3,6 @@ import {
   downloadSpecSchema,
   taskIdSchema,
   settingKeySchema,
-  settingValueSchema,
-  systemPathNameSchema,
   filePathSchema,
   urlSchema,
   sanitizeString,

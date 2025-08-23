@@ -6,7 +6,6 @@ import { applyCSP } from './security/csp';
 import { PathValidator } from './security/path-validator';
 import { DRMDetector } from './security/drm-detector';
 import { LegalConsentManager } from './security/legal-consent';
-import { NetworkSecurity } from './security/network-security';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling
 if (require('electron-squirrel-startup')) {
@@ -139,13 +138,8 @@ app.on('web-contents-created', (_, contents) => {
     }
   });
   
-  // Prevent new window creation from renderer
-  contents.on('new-window', (event) => {
-    event.preventDefault();
-  });
-  
   // Handle permission requests
-  contents.session.setPermissionRequestHandler((webContents, permission, callback) => {
+  contents.session.setPermissionRequestHandler((_webContents, permission, callback) => {
     // Deny all permission requests by default
     const deniedPermissions = [
       'media',
@@ -164,7 +158,7 @@ app.on('web-contents-created', (_, contents) => {
       callback(false);
     } else {
       // Allow clipboard operations
-      callback(permission === 'clipboard-read' || permission === 'clipboard-write');
+      callback(permission === 'clipboard-read' || permission === 'clipboard-sanitized-write');
     }
   });
 });

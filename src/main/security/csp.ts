@@ -61,7 +61,7 @@ export function applyCSP(): void {
   
   // Apply CSP to all sessions
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
-    const responseHeaders = {
+    const responseHeaders: Record<string, string[]> = {
       ...details.responseHeaders,
       'Content-Security-Policy': [cspString],
     };
