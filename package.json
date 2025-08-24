@@ -11,7 +11,7 @@
     "dev": "bun run scripts/dev.ts",
     "build": "bun run scripts/build.ts",
     "test": "bun test:bun && bun test:vitest",
-    "test:bun": "bun test ./src/**/*.bun.test.ts",
+    "test:bun": "bun test",
     "test:vitest": "vitest run",
     "test:watch": "vitest watch",
     "test:coverage": "vitest run --coverage",
