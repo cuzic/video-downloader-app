@@ -6,6 +6,7 @@ import { applyCSP } from './security/csp';
 import { PathValidator } from './security/path-validator';
 import { DRMDetector } from './security/drm-detector';
 import { LegalConsentManager } from './security/legal-consent';
+import { setupLoggingIPC, setupExceptionHandlers, logStartup, logShutdown } from '../logging';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling
 if (require('electron-squirrel-startup')) {
@@ -58,30 +59,43 @@ function createWindow(): void {
   });
 }
 
+// Setup logging and exception handlers early
+setupExceptionHandlers();
+setupLoggingIPC();
+
 // This method will be called when Electron has finished initialization
 void app.whenReady().then(async () => {
+  // Log application startup
+  logStartup(app.getVersion(), {
+    platform: process.platform,
+    arch: process.arch,
+    node: process.versions.node,
+    electron: process.versions.electron,
+  });
+
   // Apply Content Security Policy
   applyCSP();
-  
+
   // Initialize path validator
   PathValidator.initialize();
-  
+
   // Check for legal consent on first launch
   const hasConsent = await LegalConsentManager.checkAndPromptConsent();
   if (!hasConsent) {
+    logShutdown('User declined legal consent');
     app.quit();
     return;
   }
-  
+
   // Initialize database system
   await initDatabase();
-  
+
   // Register IPC handlers
   registerIpcHandlers();
-  
+
   // Create window
   createWindow();
-  
+
   // Apply DRM detection to main window
   if (mainWindow) {
     DRMDetector.injectDRMDetectionScript(mainWindow);
@@ -103,8 +117,9 @@ app.on('window-all-closed', () => {
 });
 
 // Clean up before quitting
-app.on('before-quit', async () => {
-  await shutdownDatabase();
+app.on('before-quit', () => {
+  logShutdown('Application quit requested');
+  void shutdownDatabase();
 });
 
 // Security: Prevent new window creation and enhance security
@@ -113,31 +128,30 @@ app.on('web-contents-created', (_, contents) => {
   contents.on('will-attach-webview', (event) => {
     event.preventDefault();
   });
-  
+
   // Use setWindowOpenHandler instead of deprecated 'new-window' event
   contents.setWindowOpenHandler(() => {
     return { action: 'deny' };
   });
-  
+
   // Prevent navigation to external URLs
   contents.on('will-navigate', (event, url) => {
     const parsedUrl = new URL(url);
-    const allowedOrigins = process.env.NODE_ENV === 'development' 
-      ? ['http://localhost:5173']
-      : ['file://'];
-    
-    const isAllowed = allowedOrigins.some(origin => {
+    const allowedOrigins =
+      process.env.NODE_ENV === 'development' ? ['http://localhost:5173'] : ['file://'];
+
+    const isAllowed = allowedOrigins.some((origin) => {
       if (origin === 'file://') {
         return parsedUrl.protocol === 'file:';
       }
       return parsedUrl.origin === origin;
     });
-    
+
     if (!isAllowed) {
       event.preventDefault();
     }
   });
-  
+
   // Handle permission requests
   contents.session.setPermissionRequestHandler((_webContents, permission, callback) => {
     // Deny all permission requests by default
@@ -151,9 +165,9 @@ app.on('web-contents-created', (_, contents) => {
       'openExternal',
       'hid',
       'serial',
-      'usb'
+      'usb',
     ];
-    
+
     if (deniedPermissions.includes(permission)) {
       callback(false);
     } else {
