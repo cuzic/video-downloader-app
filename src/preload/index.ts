@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import type { DownloadSpec, DownloadTaskDTO, AppSettings } from '@/shared/types';
+import type { DownloadSpec, DownloadTaskDTO, AppSettings, ULog } from '@/shared/types';
 import {
   downloadSpecSchema,
   taskIdSchema,
@@ -165,7 +165,7 @@ const api = {
 };
 
 // Define the logging API exposed to the renderer process
-const ulog = {
+const ulog: ULog = {
   info: (msg: string, meta?: Record<string, unknown>) => {
     ipcRenderer.send('log:info', { msg, meta });
   },
@@ -205,4 +205,3 @@ contextBridge.exposeInMainWorld('ulog', ulog);
 
 // Type definitions for TypeScript
 export type ElectronAPI = typeof api;
-export type ULog = typeof ulog;

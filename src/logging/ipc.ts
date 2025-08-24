@@ -4,14 +4,9 @@
  */
 import { ipcMain } from 'electron';
 import type { IpcMainEvent } from 'electron';
+import type { LogMessage } from '@/shared/types';
 import { withContext } from './context';
 import { logInfo, logWarn, logError, logDebug } from './logger';
-
-interface LogMessage {
-  msg: string;
-  meta?: Record<string, unknown>;
-  cid?: string;
-}
 
 /**
  * Setup IPC handlers for logging from renderer process
