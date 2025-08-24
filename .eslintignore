@@ -20,3 +20,4 @@ yarn.lock
 src/main/db/backup.ts
 src/main/db/init.ts
 src/main/downloader/
+src/test/examples/
