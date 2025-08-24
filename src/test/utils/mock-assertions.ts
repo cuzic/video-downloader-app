@@ -133,7 +133,7 @@ export function expectMockCalledWithPartial<T extends (arg: any) => any>(
   mock: T | Mock<T>,
   partial: Partial<Parameters<T>[0]>
 ): void {
-  expect(mock).toHaveBeenCalledWith(expect.objectContaining(partial));
+  expect(mock).toHaveBeenCalledWith(expect.objectContaining(partial as any));
 }
 
 /**

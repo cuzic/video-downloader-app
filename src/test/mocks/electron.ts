@@ -44,6 +44,9 @@ export function createAppMocks(): Partial<App> {
       wasOpenedAtLogin: false,
       wasOpenedAsHidden: false,
       restoreState: false,
+      status: 'not-registered' as const,
+      executableWillLaunchAtLogin: false,
+      launchItems: [],
     })),
     setLoginItemSettings: vi.fn(),
   };
@@ -88,7 +91,7 @@ export function createIpcMainMocks(): Partial<IpcMain> {
     removeHandler: vi.fn((channel: string) => {
       handlers.delete(channel);
     }),
-    on: vi.fn((channel: string, listener: Mock) => {
+    on: vi.fn(function (channel: string, listener: Mock) {
       if (!listeners.has(channel)) {
         listeners.set(channel, []);
       }
@@ -96,9 +99,9 @@ export function createIpcMainMocks(): Partial<IpcMain> {
       if (channelListeners) {
         channelListeners.push(listener);
       }
-      return this as IpcMain;
+      return {} as any;
     }),
-    once: vi.fn((channel: string, listener: Mock) => {
+    once: vi.fn(function (channel: string, listener: Mock) {
       if (!listeners.has(channel)) {
         listeners.set(channel, []);
       }
@@ -106,9 +109,9 @@ export function createIpcMainMocks(): Partial<IpcMain> {
       if (channelListeners) {
         channelListeners.push(listener);
       }
-      return this as IpcMain;
+      return {} as any;
     }),
-    removeListener: vi.fn((channel: string, listener: Mock) => {
+    removeListener: vi.fn(function (channel: string, listener: Mock) {
       const channelListeners = listeners.get(channel);
       if (channelListeners) {
         const index = channelListeners.indexOf(listener);
@@ -116,15 +119,15 @@ export function createIpcMainMocks(): Partial<IpcMain> {
           channelListeners.splice(index, 1);
         }
       }
-      return this as IpcMain;
+      return {} as any;
     }),
-    removeAllListeners: vi.fn((channel?: string) => {
+    removeAllListeners: vi.fn(function (channel?: string) {
       if (channel) {
         listeners.delete(channel);
       } else {
         listeners.clear();
       }
-      return this as IpcMain;
+      return {} as any;
     }),
     // Expose for testing
     __handlers: handlers,
@@ -227,7 +230,7 @@ export function createShellMocks(): Partial<Shell> {
     openExternal: vi.fn().mockResolvedValue(undefined),
     openPath: vi.fn().mockResolvedValue(''),
     showItemInFolder: vi.fn(),
-    moveItemToTrash: vi.fn().mockResolvedValue(true),
+    trashItem: vi.fn().mockResolvedValue(undefined),
     beep: vi.fn(),
     writeShortcutLink: vi.fn(() => true),
     readShortcutLink: vi.fn(() => ({
@@ -272,7 +275,7 @@ export function createClipboardMocks(): Partial<Clipboard> {
 /**
  * Creates all Electron mocks at once
  */
-export function createElectronMocks(): ReturnType<typeof mockElectron> {
+export function createElectronMocks(): any {
   return {
     app: createAppMocks(),
     dialog: createDialogMocks(),
@@ -314,7 +317,7 @@ export function createElectronMocks(): ReturnType<typeof mockElectron> {
 /**
  * Helper to mock Electron in tests
  */
-export function mockElectron(): ReturnType<typeof createElectronMocks> {
+export function mockElectron(): any {
   const mocks = createElectronMocks();
 
   vi.mock('electron', () => mocks);

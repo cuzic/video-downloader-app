@@ -245,8 +245,8 @@ export function createDeferred<T = void>(): {
   resolve: (value: T) => void;
   reject: (error: unknown) => void;
 } {
-  let resolve: (value: T) => void;
-  let reject: (error: unknown) => void;
+  let resolve: (value: T) => void = () => {};
+  let reject: (error: unknown) => void = () => {};
 
   const promise = new Promise<T>((res, rej) => {
     resolve = res;
@@ -255,8 +255,8 @@ export function createDeferred<T = void>(): {
 
   return {
     promise,
-    resolve: resolve as (value: T) => void,
-    reject: reject as (error: unknown) => void,
+    resolve,
+    reject,
   };
 }
 
