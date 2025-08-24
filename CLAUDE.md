@@ -1,109 +1,90 @@
 ---
 
-Default to using Bun instead of Node.js.
+# Video Downloader Electron App Development Guidelines
 
-- Use `bun <file>` instead of `node <file>` or `ts-node <file>`
-- Use `bun test` instead of `jest` or `vitest`
-- Use `bun build <file.html|file.ts|file.css>` instead of `webpack` or `esbuild`
-- Use `bun install` instead of `npm install` or `yarn install` or `pnpm install`
-- Use `bun run <script>` instead of `npm run <script>` or `yarn run <script>` or `pnpm run <script>`
-- Bun automatically loads .env, so don't use dotenv.
+This is an Electron application that uses pnpm as the package manager and Node.js/TypeScript for development.
 
-## APIs
+## Package Management
 
-- `Bun.serve()` supports WebSockets, HTTPS, and routes. Don't use `express`.
-- `bun:sqlite` for SQLite. Don't use `better-sqlite3`.
-- `Bun.redis` for Redis. Don't use `ioredis`.
-- `Bun.sql` for Postgres. Don't use `pg` or `postgres.js`.
-- `WebSocket` is built-in. Don't use `ws`.
-- Prefer `Bun.file` over `node:fs`'s readFile/writeFile
-- Bun.$`ls` instead of execa.
+- Use `pnpm install` to install dependencies
+- Use `pnpm add <package>` to add new dependencies
+- Use `pnpm run <script>` to run scripts
+- Project uses pnpm version 9.7.0 (managed via Corepack)
 
-## Testing
+## Development Setup
 
-Use `bun test` to run tests.
+```bash
+# Enable Corepack and set up pnpm
+corepack enable
+corepack prepare pnpm@9.7.0 --activate
 
-```ts#index.test.ts
-import { test, expect } from "bun:test";
+# Install dependencies
+pnpm install
 
-test("hello world", () => {
-  expect(1).toBe(1);
-});
+# Run development server
+pnpm run dev
+
+# Build the application
+pnpm run build
 ```
 
-## Frontend
+## Key Technologies
 
-Use HTML imports with `Bun.serve()`. Don't use `vite`. HTML imports fully support React, CSS, Tailwind.
+- **Runtime**: Node.js with TypeScript (tsx for execution)
+- **Framework**: Electron for desktop application
+- **Build Tool**: Vite with vite-plugin-electron
+- **Database**: better-sqlite3 (requires native rebuild for Electron)
+- **Testing**: Vitest for unit tests, Playwright for E2E tests
+- **Package Manager**: pnpm
 
-Server:
+## Important Notes
 
-```ts#index.ts
-import index from "./index.html"
+### Environment Variables
+- Use `dotenv` package for loading `.env` files
+- Import and configure at application entry point:
+  ```ts
+  import dotenv from 'dotenv';
+  dotenv.config();
+  ```
 
-Bun.serve({
-  routes: {
-    "/": index,
-    "/api/users/:id": {
-      GET: (req) => {
-        return new Response(JSON.stringify({ id: req.params.id }));
-      },
-    },
-  },
-  // optional websocket support
-  websocket: {
-    open: (ws) => {
-      ws.send("Hello, world!");
-    },
-    message: (ws, message) => {
-      ws.send(message);
-    },
-    close: (ws) => {
-      // handle close
-    }
-  },
-  development: {
-    hmr: true,
-    console: true,
-  }
-})
-```
+### Native Modules
+- better-sqlite3 requires rebuilding for Electron
+- Run `pnpm run rebuild` after Electron version updates
+- Postinstall script automatically handles this during `pnpm install`
 
-HTML files can import .tsx, .jsx or .js files directly and Bun's bundler will transpile & bundle automatically. `<link>` tags can point to stylesheets and Bun's CSS bundler will bundle.
+### Scripts Available
 
-```html#index.html
-<html>
-  <body>
-    <h1>Hello, world!</h1>
-    <script type="module" src="./frontend.tsx"></script>
-  </body>
-</html>
-```
+- `pnpm run dev` - Start development server
+- `pnpm run build` - Build the application
+- `pnpm run test` - Run tests with Vitest
+- `pnpm run lint` - Run ESLint
+- `pnpm run typecheck` - Type checking with TypeScript
+- `pnpm run electron` - Run Electron application
+- `pnpm run rebuild` - Rebuild native modules for Electron
 
-With the following `frontend.tsx`:
+### Database
 
-```tsx#frontend.tsx
-import React from "react";
+- Uses better-sqlite3 for SQLite database
+- Drizzle ORM for database management
+- Database scripts:
+  - `pnpm run db:generate` - Generate database migrations
+  - `pnpm run db:push` - Push schema changes
+  - `pnpm run db:migrate` - Run migrations
+  - `pnpm run db:studio` - Open Drizzle Studio
 
-// import .css files directly and it works
-import './index.css';
+## Project Structure
 
-import { createRoot } from "react-dom/client";
+- `/src/main` - Electron main process code
+- `/src/renderer` - Electron renderer process code
+- `/src/preload` - Preload scripts
+- `/dist` - Build output directory
 
-const root = createRoot(document.body);
+## Coding Standards
 
-export default function Frontend() {
-  return <h1>Hello, world!</h1>;
-}
-
-root.render(<Frontend />);
-```
-
-Then, run index.ts
-
-```sh
-bun --hot ./index.ts
-```
-
-For more information, read the Bun API docs in `node_modules/bun-types/docs/**.md`.
+- Use TypeScript for all new code
+- Follow existing patterns in the codebase
+- Ensure proper error handling
+- Write tests for new features
+- Run `pnpm run typecheck` and `pnpm run lint` before committing
 
 - もっと実装を工夫して、コンパクトな修正にリファクタできませんか？
