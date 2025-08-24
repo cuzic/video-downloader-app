@@ -1,5 +1,6 @@
 import { app, BrowserWindow, shell } from 'electron';
 import path from 'path';
+import 'dotenv/config';
 import { initDatabase, shutdownDatabase } from './db/init';
 import { registerIpcHandlers } from './ipc';
 import { applyCSP } from './security/csp';
