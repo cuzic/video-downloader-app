@@ -20,3 +20,6 @@ export type { ErrorCode } from './error.types';
 
 // Re-export interfaces as types
 export type { IpcRequest, IpcResponse } from './ipc.types';
+
+// Logging types
+export type { ULog, LogLevel, LogMetadata, LogMessage } from './logging';
