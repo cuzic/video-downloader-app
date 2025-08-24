@@ -18,8 +18,6 @@ describe('Log Configuration Parsing', () => {
 
   test('should use default size when LOG_MAX_SIZE is not set', () => {
     delete process.env.LOG_MAX_SIZE;
-    // Re-import to test the parsing
-    jest.resetModules?.();
     // In a real test, we'd need to re-import the module
     // For now, we'll just verify the environment variable behavior
     expect(process.env.LOG_MAX_SIZE).toBeUndefined();

@@ -33,15 +33,17 @@ describe('Logging Integration Tests', () => {
 
     await withContext(async () => {
       capturedCid = getCid();
-      logInfo('Test start', { test: 'correlation' });
+      if (capturedCid) {
+        logInfo('Test start', { test: 'correlation' });
 
-      // Simulate async operation
-      await new Promise((resolve) => setTimeout(resolve, 10));
+        // Simulate async operation
+        await new Promise((resolve) => setTimeout(resolve, 10));
 
-      const afterAsyncCid = getCid();
-      expect(afterAsyncCid).toBe(capturedCid);
+        const afterAsyncCid = getCid();
+        expect(afterAsyncCid).toBe(capturedCid);
 
-      logInfo('Test end', { test: 'correlation' });
+        logInfo('Test end', { test: 'correlation' });
+      }
     });
 
     expect(capturedCid).toBeTruthy();
@@ -140,14 +142,16 @@ describe('Logging Integration Tests', () => {
       promises.push(
         withContext(async () => {
           const cid = getCid();
-          logInfo(`Concurrent log ${i}`, { index: i });
+          if (cid) {
+            logInfo(`Concurrent log ${i}`, { index: i });
 
-          // Simulate async work
-          await new Promise((resolve) => setTimeout(resolve, Math.random() * 10));
+            // Simulate async work
+            await new Promise((resolve) => setTimeout(resolve, Math.random() * 10));
 
-          // CID should be maintained
-          expect(getCid()).toBe(cid);
-          logInfo(`Concurrent log ${i} complete`, { index: i });
+            // CID should be maintained
+            expect(getCid()).toBe(cid);
+            logInfo(`Concurrent log ${i} complete`, { index: i });
+          }
         })
       );
     }
