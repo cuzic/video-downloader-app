@@ -28,9 +28,17 @@ export const BrowserWindow = Object.assign(
     show: createMockFn(),
     hide: createMockFn(),
     isVisible: createMockFn(() => true),
+    isDestroyed: createMockFn(() => false),
   })),
   {
-    getAllWindows: createMockFn(() => []),
+    getAllWindows: createMockFn(() => [
+      {
+        isDestroyed: createMockFn(() => false),
+        webContents: {
+          send: createMockFn(),
+        },
+      },
+    ]),
     fromWebContents: createMockFn(() => null),
   }
 );

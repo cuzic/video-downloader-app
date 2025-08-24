@@ -65,7 +65,7 @@ test.describe('IPC Communication', () => {
         ipcMain.once('test-message', (_event: any, arg: any) => {
           resolve(arg);
         });
-        
+
         // Trigger a test message from renderer
         const window = require('electron').BrowserWindow.getAllWindows()[0];
         window.webContents.send('trigger-test');

@@ -10,7 +10,7 @@ import {
 import { ErrorCode } from '@/shared/types/ipc.types';
 
 // Mock audit log repository
-vi.mock('@/main/db/repositories', () => ({
+vi.mock('../../db/repositories/index.js', () => ({
   auditLogRepo: {
     error: vi.fn(),
     log: vi.fn(),
@@ -143,7 +143,7 @@ describe('Error Handler Utilities', () => {
     });
 
     it('should log errors to audit log', async () => {
-      const { auditLogRepo } = require('@/main/db/repositories');
+      const { auditLogRepo } = await import('../../db/repositories/index.js');
       const error = new Error('Handler failed');
       const handler = vi.fn().mockRejectedValue(error);
       const wrapped = wrapHandler(handler);
@@ -168,28 +168,19 @@ describe('Error Handler Utilities', () => {
   describe('validateRequired', () => {
     it('should pass when all required fields are present', () => {
       expect(() => {
-        validateRequired(
-          { name: 'John', age: 30 },
-          ['name', 'age']
-        );
+        validateRequired({ name: 'John', age: 30 }, ['name', 'age']);
       }).not.toThrow();
     });
 
     it('should throw when required field is missing', () => {
       expect(() => {
-        validateRequired(
-          { name: 'John' },
-          ['name', 'age']
-        );
+        validateRequired({ name: 'John' }, ['name', 'age']);
       }).toThrow();
     });
 
     it('should throw IPCError with missing fields', () => {
       try {
-        validateRequired(
-          { name: 'John' },
-          ['name', 'age', 'email']
-        );
+        validateRequired({ name: 'John' }, ['name', 'age', 'email']);
       } catch (error: any) {
         expect(error.code).toBe(ErrorCode.INVALID_ARGUMENT);
         expect(error.message).toContain('age, email');
@@ -199,19 +190,13 @@ describe('Error Handler Utilities', () => {
 
     it('should treat null as missing', () => {
       expect(() => {
-        validateRequired(
-          { name: 'John', age: null },
-          ['name', 'age']
-        );
+        validateRequired({ name: 'John', age: null }, ['name', 'age']);
       }).toThrow();
     });
 
     it('should treat undefined as missing', () => {
       expect(() => {
-        validateRequired(
-          { name: 'John', age: undefined },
-          ['name', 'age']
-        );
+        validateRequired({ name: 'John', age: undefined }, ['name', 'age']);
       }).toThrow();
     });
   });

@@ -28,7 +28,8 @@ export const CreateTaskSchema = z.object({
 });
 
 // Settings validation schemas
-export const SettingKeySchema = z.string()
+export const SettingKeySchema = z
+  .string()
   .min(1)
   .max(100)
   .regex(/^[a-zA-Z0-9._-]+$/);
@@ -86,12 +87,7 @@ export const CreateHistoryEntrySchema = z.object({
 });
 
 // Segment validation schemas
-export const SegmentStatusSchema = z.enum([
-  'pending',
-  'downloading',
-  'completed',
-  'error',
-]);
+export const SegmentStatusSchema = z.enum(['pending', 'downloading', 'completed', 'error']);
 
 export const CreateSegmentSchema = z.object({
   segmentIndex: z.number().int().min(0),
@@ -126,15 +122,18 @@ export const SafePathSchema = z.string().refine((path) => {
 }, 'Path must not contain directory traversal sequences');
 
 // URL validation with additional checks
-export const SafeUrlSchema = z.string().url().refine((url) => {
-  try {
-    const parsed = new URL(url);
-    // Only allow http/https protocols
-    return ['http:', 'https:'].includes(parsed.protocol);
-  } catch {
-    return false;
-  }
-}, 'URL must use http or https protocol');
+export const SafeUrlSchema = z
+  .string()
+  .url()
+  .refine((url) => {
+    try {
+      const parsed = new URL(url);
+      // Only allow http/https protocols
+      return ['http:', 'https:'].includes(parsed.protocol);
+    } catch {
+      return false;
+    }
+  }, 'URL must use http or https protocol');
 
 // Validate download spec
 export const validateDownloadSpec = (spec: any) => {
@@ -149,7 +148,7 @@ export const validateDownloadSpec = (spec: any) => {
     metadata: z.any().optional(),
     priority: z.number().int().min(0).max(100).optional(),
   });
-  
+
   return schema.parse(spec);
 };
 
@@ -165,7 +164,7 @@ export const validateAppSettings = (settings: any) => {
     theme: z.enum(['light', 'dark', 'system']).optional(),
     language: z.string().optional(),
   });
-  
+
   return schema.parse(settings);
 };
 

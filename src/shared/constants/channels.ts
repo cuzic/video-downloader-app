@@ -1,6 +1,6 @@
 /**
  * IPC Channel Constants
- * 
+ *
  * Naming Convention:
  * - Request/Response: `app:{domain}:{action}`
  * - Events (Main → Renderer): `on:{domain}:{event}`
@@ -18,7 +18,7 @@ export const DOWNLOAD_CHANNELS = {
   GET_TASK: 'app:download:get-task',
   LIST_TASKS: 'app:download:list-tasks',
   CLEAR_COMPLETED: 'app:download:clear-completed',
-  
+
   // Events
   ON_PROGRESS: 'on:download:progress',
   ON_COMPLETED: 'on:download:completed',
@@ -38,7 +38,7 @@ export const DETECTION_CHANNELS = {
   GET_CANDIDATES: 'app:detection:get-candidates',
   CLEAR_DETECTIONS: 'app:detection:clear',
   IGNORE_URL: 'app:detection:ignore-url',
-  
+
   // Events
   ON_VIDEO_FOUND: 'on:detection:video-found',
   ON_VIDEO_SKIPPED: 'on:detection:video-skipped',
@@ -52,7 +52,7 @@ export const SETTINGS_CHANNELS = {
   GET: 'app:settings:get',
   SET: 'app:settings:set',
   RESET: 'app:settings:reset',
-  
+
   // Events
   ON_CHANGED: 'on:settings:changed',
 } as const;
@@ -72,7 +72,7 @@ export const SYSTEM_CHANNELS = {
   SELECT_FILE: 'app:system:selectFile',
   GET_FILE_INFO: 'app:system:getFileInfo',
   TRASH_ITEM: 'app:system:trashItem',
-  
+
   // Clipboard
   CLIPBOARD_WRITE_TEXT: 'app:clipboard:write-text',
   CLIPBOARD_READ_TEXT: 'app:clipboard:read-text',
@@ -86,7 +86,7 @@ export const WINDOW_CHANNELS = {
   CLOSE: 'app:window:close',
   IS_MAXIMIZED: 'app:window:is-maximized',
   SET_ALWAYS_ON_TOP: 'app:window:set-always-on-top',
-  
+
   // Events
   ON_MAXIMIZED: 'on:window:maximized',
   ON_UNMAXIMIZED: 'on:window:unmaximized',
@@ -100,7 +100,7 @@ export const APP_CHANNELS = {
   GET_VERSION: 'app:app:get-version',
   QUIT: 'app:app:quit',
   RELAUNCH: 'app:app:relaunch',
-  
+
   // Events
   ON_BEFORE_QUIT: 'on:app:before-quit',
   ON_ACTIVATE: 'on:app:activate',
@@ -116,4 +116,4 @@ export const ALL_CHANNELS = [
   ...Object.values(APP_CHANNELS),
 ] as const;
 
-export type Channel = typeof ALL_CHANNELS[number];
+export type Channel = (typeof ALL_CHANNELS)[number];

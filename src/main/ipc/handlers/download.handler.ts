@@ -31,26 +31,28 @@ function safeJsonParse<T = any>(str: string | null | undefined): T | undefined {
 export const downloadHandlers = [
   {
     channel: DOWNLOAD_CHANNELS.START,
-    handler: wrapHandler(async (_event: IpcMainInvokeEvent, spec: DownloadSpec): Promise<DownloadStartResponse> => {
-      validateRequired({ spec }, ['spec']);
-      const id = await getTaskRepo().create(spec);
-      
-      // Emit start event
-      broadcast(DOWNLOAD_CHANNELS.ON_STARTED, { taskId: id });
-      
-      // TODO: Start actual download process
-      return { id };
-    }),
+    handler: wrapHandler(
+      async (_event: IpcMainInvokeEvent, spec: DownloadSpec): Promise<DownloadStartResponse> => {
+        validateRequired({ spec }, ['spec']);
+        const id = await getTaskRepo().create(spec);
+
+        // Emit start event
+        broadcast(DOWNLOAD_CHANNELS.ON_STARTED, { taskId: id });
+
+        // TODO: Start actual download process
+        return { id };
+      }
+    ),
   },
   {
     channel: DOWNLOAD_CHANNELS.PAUSE,
     handler: wrapHandler(async (_event: IpcMainInvokeEvent, taskId: string): Promise<void> => {
       validateRequired({ taskId }, ['taskId']);
       await getTaskRepo().pause(taskId);
-      
+
       // Emit pause event
       broadcast(DOWNLOAD_CHANNELS.ON_PAUSED, { taskId });
-      
+
       // TODO: Pause actual download
     }),
   },
@@ -59,10 +61,10 @@ export const downloadHandlers = [
     handler: wrapHandler(async (_event: IpcMainInvokeEvent, taskId: string): Promise<void> => {
       validateRequired({ taskId }, ['taskId']);
       await getTaskRepo().resume(taskId);
-      
+
       // Emit resume event
       broadcast(DOWNLOAD_CHANNELS.ON_RESUMED, { taskId });
-      
+
       // TODO: Resume actual download
     }),
   },
@@ -71,10 +73,10 @@ export const downloadHandlers = [
     handler: wrapHandler(async (_event: IpcMainInvokeEvent, taskId: string): Promise<void> => {
       validateRequired({ taskId }, ['taskId']);
       await getTaskRepo().cancel(taskId);
-      
+
       // Emit cancel event
       broadcast(DOWNLOAD_CHANNELS.ON_CANCELED, { taskId });
-      
+
       // TODO: Cancel actual download
     }),
   },
@@ -83,10 +85,10 @@ export const downloadHandlers = [
     handler: wrapHandler(async (_event: IpcMainInvokeEvent, taskId: string): Promise<void> => {
       validateRequired({ taskId }, ['taskId']);
       await getTaskRepo().retry(taskId);
-      
+
       // Emit start event
       broadcast(DOWNLOAD_CHANNELS.ON_STARTED, { taskId });
-      
+
       // TODO: Restart download
     }),
   },
@@ -95,7 +97,7 @@ export const downloadHandlers = [
     handler: async (_event: IpcMainInvokeEvent): Promise<DownloadTaskDTO[]> => {
       const tasks = await getTaskRepo().getAll();
       // Convert to DTOs
-      return tasks.map(task => ({
+      return tasks.map((task) => ({
         id: task.id,
         spec: {
           url: task.url,
@@ -117,13 +119,15 @@ export const downloadHandlers = [
           speedBps: task.speedBps || undefined,
           etaMs: task.etaMs || undefined,
         },
-        error: task.errorCode ? {
-          code: task.errorCode,
-          message: task.errorMessage || '',
-          details: safeJsonParse(task.errorDetails),
-          retryable: true,
-          attempt: task.retryCount,
-        } : undefined,
+        error: task.errorCode
+          ? {
+              code: task.errorCode,
+              message: task.errorMessage || '',
+              details: safeJsonParse(task.errorDetails),
+              retryable: true,
+              attempt: task.retryCount,
+            }
+          : undefined,
         createdAt: task.createdAt.toISOString(),
         startedAt: task.startedAt ? task.startedAt.toISOString() : undefined,
         pausedAt: task.pausedAt ? task.pausedAt.toISOString() : undefined,
@@ -133,10 +137,13 @@ export const downloadHandlers = [
   },
   {
     channel: 'app:download:get',
-    handler: async (_event: IpcMainInvokeEvent, taskId: string): Promise<DownloadTaskDTO | null> => {
+    handler: async (
+      _event: IpcMainInvokeEvent,
+      taskId: string
+    ): Promise<DownloadTaskDTO | null> => {
       const task = await getTaskRepo().getById(taskId);
       if (!task) return null;
-      
+
       // Convert to DTO
       return {
         id: task.id,
@@ -160,13 +167,15 @@ export const downloadHandlers = [
           speedBps: task.speedBps || undefined,
           etaMs: task.etaMs || undefined,
         },
-        error: task.errorCode ? {
-          code: task.errorCode,
-          message: task.errorMessage || '',
-          details: safeJsonParse(task.errorDetails),
-          retryable: true,
-          attempt: task.retryCount,
-        } : undefined,
+        error: task.errorCode
+          ? {
+              code: task.errorCode,
+              message: task.errorMessage || '',
+              details: safeJsonParse(task.errorDetails),
+              retryable: true,
+              attempt: task.retryCount,
+            }
+          : undefined,
         createdAt: task.createdAt.toISOString(),
         startedAt: task.startedAt ? task.startedAt.toISOString() : undefined,
         pausedAt: task.pausedAt ? task.pausedAt.toISOString() : undefined,

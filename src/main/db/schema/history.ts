@@ -8,18 +8,28 @@ import { tasks } from './tasks';
 export const history = sqliteTable('history', {
   // Auto-incrementing primary key
   id: integer('id').primaryKey({ autoIncrement: true }),
-  
+
   // Foreign key to tasks table
   taskId: text('task_id').references(() => tasks.id, { onDelete: 'cascade' }),
-  
+
   // Event type
   event: text('event', {
-    enum: ['created', 'started', 'paused', 'resumed', 'completed', 'failed', 'canceled', 'progress', 'error']
+    enum: [
+      'created',
+      'started',
+      'paused',
+      'resumed',
+      'completed',
+      'failed',
+      'canceled',
+      'progress',
+      'error',
+    ],
   }).notNull(),
-  
+
   // Event details (JSON)
   details: text('details', { mode: 'json' }),
-  
+
   // Timestamp
   createdAt: integer('created_at', { mode: 'timestamp' })
     .notNull()

@@ -2,10 +2,14 @@
  * Universal test setup that works with both Bun and Vitest
  */
 import { createMockFn, isVitest, isBunTest } from './mock-utils';
+import { setupTestDatabase } from './db-setup';
 
 // Setup test environment variables
 process.env.NODE_ENV = 'test';
 process.env.VITE_DEV_SERVER_URL = undefined;
+
+// Initialize test database
+setupTestDatabase().catch(console.error);
 
 // Setup mocks based on test runner
 if (isVitest()) {

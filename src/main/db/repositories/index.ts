@@ -22,7 +22,7 @@ export interface RepositoryConfig {
 
 export class RepositoryFactory {
   private static instances: Map<string, any> = new Map();
-  
+
   static createTaskRepository(config?: RepositoryConfig): TaskRepository {
     const key = 'task';
     if (!this.instances.has(key)) {
@@ -30,7 +30,7 @@ export class RepositoryFactory {
     }
     return this.instances.get(key);
   }
-  
+
   static createSettingsRepository(): SettingsRepository {
     const key = 'settings';
     if (!this.instances.has(key)) {
@@ -38,7 +38,7 @@ export class RepositoryFactory {
     }
     return this.instances.get(key);
   }
-  
+
   static createDetectionRepository(): DetectionRepository {
     const key = 'detection';
     if (!this.instances.has(key)) {
@@ -46,7 +46,7 @@ export class RepositoryFactory {
     }
     return this.instances.get(key);
   }
-  
+
   static createHistoryRepository(): HistoryRepository {
     const key = 'history';
     if (!this.instances.has(key)) {
@@ -54,7 +54,7 @@ export class RepositoryFactory {
     }
     return this.instances.get(key);
   }
-  
+
   static createSegmentRepository(): SegmentRepository {
     const key = 'segment';
     if (!this.instances.has(key)) {
@@ -62,7 +62,7 @@ export class RepositoryFactory {
     }
     return this.instances.get(key);
   }
-  
+
   static createStatisticsRepository(): StatisticsRepository {
     const key = 'statistics';
     if (!this.instances.has(key)) {
@@ -70,7 +70,7 @@ export class RepositoryFactory {
     }
     return this.instances.get(key);
   }
-  
+
   static createAuditLogRepository(): AuditLogRepository {
     const key = 'auditLog';
     if (!this.instances.has(key)) {
@@ -78,7 +78,7 @@ export class RepositoryFactory {
     }
     return this.instances.get(key);
   }
-  
+
   static clearInstances(): void {
     this.instances.clear();
   }

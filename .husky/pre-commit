@@ -1,4 +1,4 @@
 # Check for empty directories
 node scripts/check-empty-dirs.js || exit 1
 
-bunx lint-staged
+pnpm exec lint-staged

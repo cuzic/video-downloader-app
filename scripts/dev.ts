@@ -37,7 +37,17 @@ const viteProcess = spawn('pnpm', ['exec', 'vite'], {
 // Build and watch preload script using esbuild
 const preloadProcess = spawn(
   'pnpm',
-  ['exec', 'esbuild', 'src/preload/index.ts', '--bundle', '--outdir=dist/preload', '--watch', '--platform=node', '--target=node20', '--format=esm'],
+  [
+    'exec',
+    'esbuild',
+    'src/preload/index.ts',
+    '--bundle',
+    '--outdir=dist/preload',
+    '--watch',
+    '--platform=node',
+    '--target=node20',
+    '--format=esm',
+  ],
   {
     cwd: rootDir,
     stdio: 'inherit',
@@ -48,7 +58,24 @@ const preloadProcess = spawn(
 // Build and watch main process using esbuild
 const mainProcess = spawn(
   'pnpm',
-  ['exec', 'esbuild', 'src/main/index.ts', '--bundle', '--outdir=dist/main', '--watch', '--platform=node', '--target=node20', '--format=esm', '--external:electron', '--external:better-sqlite3', '--external:keytar', '--external:electron-store', '--external:winston', '--external:winston-daily-rotate-file', '--external:drizzle-orm'],
+  [
+    'exec',
+    'esbuild',
+    'src/main/index.ts',
+    '--bundle',
+    '--outdir=dist/main',
+    '--watch',
+    '--platform=node',
+    '--target=node20',
+    '--format=esm',
+    '--external:electron',
+    '--external:better-sqlite3',
+    '--external:keytar',
+    '--external:electron-store',
+    '--external:winston',
+    '--external:winston-daily-rotate-file',
+    '--external:drizzle-orm',
+  ],
   {
     cwd: rootDir,
     stdio: 'inherit',

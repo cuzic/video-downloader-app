@@ -9,7 +9,7 @@ test.beforeAll(async () => {
   electronApp = await electron.launch({
     args: [path.join(__dirname, '..', 'dist', 'main', 'index.js')],
   });
-  
+
   page = await electronApp.firstWindow();
 });
 
@@ -36,10 +36,10 @@ test.describe('Video Downloader App', () => {
   test('should show error for invalid URL', async () => {
     const urlInput = await page.locator('input[placeholder*="URL"]');
     const downloadButton = await page.locator('button:has-text("Download")');
-    
+
     await urlInput.fill('invalid-url');
     await downloadButton.click();
-    
+
     const error = await page.locator('.error-message');
     await expect(error).toBeVisible();
     await expect(error).toContainText('Invalid URL');

@@ -4,34 +4,34 @@
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
     "editorconfig.editorconfig",
-    
+
     // TypeScript & JavaScript
     "ms-vscode.vscode-typescript-next",
     "usernamehw.errorlens",
     "streetsidesoftware.code-spell-checker",
-    
+
     // Bun support
     "oven.bun-vscode",
-    
+
     // React & Web
     "dsznajder.es7-react-js-snippets",
     "formulahendry.auto-rename-tag",
     "bradlc.vscode-tailwindcss",
-    
+
     // Database
     "qwtel.sqlite-viewer",
-    
+
     // Git
     "eamodio.gitlens",
     "mhutchie.git-graph",
-    
+
     // TOML
     "tamasfe.even-better-toml",
-    
+
     // Markdown
     "yzhang.markdown-all-in-one",
     "bierner.markdown-preview-github-styles",
-    
+
     // Development
     "christian-kohler.path-intellisense",
     "naumovs.color-highlight",
@@ -40,19 +40,17 @@
     "mikestead.dotenv",
     "visualstudioexptteam.vscodeintellicode",
     "visualstudioexptteam.intellicode-api-usage-examples",
-    
+
     // Debugging
     "msjsdiag.debugger-for-chrome",
-    
+
     // Testing
     "orta.vscode-jest",
-    
+
     // Utilities
     "ritwickdey.liveserver",
     "ms-vscode.live-server",
     "alefragnani.project-manager"
   ],
-  "unwantedRecommendations": [
-    "ms-vscode.vscode-typescript-tslint-plugin"
-  ]
+  "unwantedRecommendations": ["ms-vscode.vscode-typescript-tslint-plugin"]
 }

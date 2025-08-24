@@ -7,14 +7,20 @@ import { validateDownloadSpec } from '../validation';
 import { AuditLogRepository } from './audit-log.repository';
 
 export class TaskCreateError extends Error {
-  constructor(message: string, public cause?: any) {
+  constructor(
+    message: string,
+    public cause?: any
+  ) {
     super(message);
     this.name = 'TaskCreateError';
   }
 }
 
 export class TaskUpdateError extends Error {
-  constructor(message: string, public cause?: any) {
+  constructor(
+    message: string,
+    public cause?: any
+  ) {
     super(message);
     this.name = 'TaskUpdateError';
   }
@@ -34,7 +40,7 @@ export class TaskRepository {
       // Validate input
       const validatedSpec = validateDownloadSpec(spec);
       const id = crypto.randomUUID();
-      
+
       // Use provided default or spec's saveDir
       let saveDir = validatedSpec.saveDir;
       if (!saveDir) {
@@ -46,7 +52,7 @@ export class TaskRepository {
           saveDir = app.getPath('downloads');
         }
       }
-      
+
       await db.insert(tasks).values({
         id,
         url: validatedSpec.url,
@@ -59,7 +65,7 @@ export class TaskRepository {
         metadata: validatedSpec.metadata ? JSON.stringify(validatedSpec.metadata) : null,
         priority: validatedSpec.priority ?? 0,
       });
-      
+
       await this.auditLogRepo.logDownloadEvent(id, 'task_created', { url: validatedSpec.url });
       return id;
     } catch (error) {
@@ -70,7 +76,8 @@ export class TaskRepository {
 
   async updateProgress(taskId: string, progress: DownloadProgress): Promise<void> {
     try {
-      await db.update(tasks)
+      await db
+        .update(tasks)
         .set({
           downloadedBytes: progress.downloadedBytes,
           totalBytes: progress.totalBytes,
@@ -87,11 +94,11 @@ export class TaskRepository {
   }
 
   async updateStatus(
-    taskId: string, 
+    taskId: string,
     status: Task['status'],
     error?: { code: string; message: string; details?: any }
   ): Promise<void> {
-    const updates: Partial<Task> = { 
+    const updates: Partial<Task> = {
       status,
       updatedAt: new Date(),
     };
@@ -121,37 +128,32 @@ export class TaskRepository {
   }
 
   async getById(taskId: string): Promise<Task | null> {
-    const result = await db.select()
-      .from(tasks)
-      .where(eq(tasks.id, taskId))
-      .limit(1);
-    
+    const result = await db.select().from(tasks).where(eq(tasks.id, taskId)).limit(1);
+
     return result[0] ?? null;
   }
 
   async listActive(): Promise<Task[]> {
-    return db.select()
+    return db
+      .select()
       .from(tasks)
       .where(inArray(tasks.status, ['running', 'paused', 'queued']))
       .orderBy(desc(tasks.priority), tasks.createdAt);
   }
 
   async getNextQueued(): Promise<Task | null> {
-    const result = await db.select()
+    const result = await db
+      .select()
       .from(tasks)
       .where(eq(tasks.status, 'queued'))
       .orderBy(desc(tasks.priority), tasks.createdAt)
       .limit(1);
-    
+
     return result[0] ?? null;
   }
 
   async getAll(limit = 100, offset = 0): Promise<Task[]> {
-    return db.select()
-      .from(tasks)
-      .orderBy(desc(tasks.createdAt))
-      .limit(limit)
-      .offset(offset);
+    return db.select().from(tasks).orderBy(desc(tasks.createdAt)).limit(limit).offset(offset);
   }
 
   async pause(taskId: string): Promise<void> {
@@ -167,7 +169,8 @@ export class TaskRepository {
   }
 
   async retry(taskId: string): Promise<void> {
-    await db.update(tasks)
+    await db
+      .update(tasks)
       .set({
         status: 'queued',
         errorCode: null,
@@ -180,14 +183,12 @@ export class TaskRepository {
   }
 
   async cleanup(daysOld: number = 30): Promise<number> {
-    const cutoff = Math.floor(Date.now() / 1000) - (daysOld * 24 * 60 * 60);
-    
-    const result = await db.delete(tasks)
-      .where(and(
-        eq(tasks.status, 'completed'),
-        sql`${tasks.completedAt} < ${cutoff}`
-      ));
-    
+    const cutoff = Math.floor(Date.now() / 1000) - daysOld * 24 * 60 * 60;
+
+    const result = await db
+      .delete(tasks)
+      .where(and(eq(tasks.status, 'completed'), sql`${tasks.completedAt} < ${cutoff}`));
+
     return result.changes;
   }
 }

@@ -16,6 +16,17 @@ vi.mock('../../../db/repositories', () => ({
       getAll: vi.fn().mockResolvedValue([]),
       getById: vi.fn().mockResolvedValue(null),
     })),
+    createAuditLogRepository: vi.fn(() => ({
+      error: vi.fn(),
+      info: vi.fn(),
+      logDownloadEvent: vi.fn(),
+    })),
+  },
+  // Default repository instances
+  auditLogRepo: {
+    error: vi.fn(),
+    info: vi.fn(),
+    logDownloadEvent: vi.fn(),
   },
 }));
 
@@ -33,12 +44,12 @@ describe('Download Handlers', () => {
         send: vi.fn(),
       },
     } as unknown as IpcMainInvokeEvent;
-    
+
     vi.clearAllMocks();
   });
 
   describe('START handler', () => {
-    const startHandler = downloadHandlers.find(h => h.channel === DOWNLOAD_CHANNELS.START);
+    const startHandler = downloadHandlers.find((h) => h.channel === DOWNLOAD_CHANNELS.START);
     if (!startHandler) throw new Error('START handler not found');
 
     it('should start a new download', async () => {
@@ -55,54 +66,62 @@ describe('Download Handlers', () => {
     });
 
     it('should validate required spec parameter', async () => {
-      await expect(startHandler.handler(mockEvent, undefined as any))
-        .rejects.toThrow('spec is required');
+      await expect(startHandler.handler(mockEvent, undefined as any)).rejects.toThrow(
+        'spec is required'
+      );
     });
   });
 
   describe('PAUSE handler', () => {
-    const pauseHandler = downloadHandlers.find(h => h.channel === DOWNLOAD_CHANNELS.PAUSE);
+    const pauseHandler = downloadHandlers.find((h) => h.channel === DOWNLOAD_CHANNELS.PAUSE);
     if (!pauseHandler) throw new Error('PAUSE handler not found');
 
     it('should pause a download', async () => {
       await pauseHandler.handler(mockEvent, 'test-task-id' as any);
-      
+
       const { broadcast } = await import('../../utils/performance');
-      expect(broadcast).toHaveBeenCalledWith(DOWNLOAD_CHANNELS.ON_PAUSED, { taskId: 'test-task-id' });
+      expect(broadcast).toHaveBeenCalledWith(DOWNLOAD_CHANNELS.ON_PAUSED, {
+        taskId: 'test-task-id',
+      });
     });
 
     it('should validate taskId parameter', async () => {
-      await expect(pauseHandler.handler(mockEvent, undefined as any))
-        .rejects.toThrow('taskId is required');
+      await expect(pauseHandler.handler(mockEvent, undefined as any)).rejects.toThrow(
+        'taskId is required'
+      );
     });
   });
 
   describe('RESUME handler', () => {
-    const resumeHandler = downloadHandlers.find(h => h.channel === DOWNLOAD_CHANNELS.RESUME);
+    const resumeHandler = downloadHandlers.find((h) => h.channel === DOWNLOAD_CHANNELS.RESUME);
     if (!resumeHandler) throw new Error('RESUME handler not found');
 
     it('should resume a download', async () => {
       await resumeHandler.handler(mockEvent, 'test-task-id' as any);
-      
+
       const { broadcast } = await import('../../utils/performance');
-      expect(broadcast).toHaveBeenCalledWith(DOWNLOAD_CHANNELS.ON_RESUMED, { taskId: 'test-task-id' });
+      expect(broadcast).toHaveBeenCalledWith(DOWNLOAD_CHANNELS.ON_RESUMED, {
+        taskId: 'test-task-id',
+      });
     });
   });
 
   describe('CANCEL handler', () => {
-    const cancelHandler = downloadHandlers.find(h => h.channel === DOWNLOAD_CHANNELS.CANCEL);
+    const cancelHandler = downloadHandlers.find((h) => h.channel === DOWNLOAD_CHANNELS.CANCEL);
     if (!cancelHandler) throw new Error('CANCEL handler not found');
 
     it('should cancel a download', async () => {
       await cancelHandler.handler(mockEvent, 'test-task-id' as any);
-      
+
       const { broadcast } = await import('../../utils/performance');
-      expect(broadcast).toHaveBeenCalledWith(DOWNLOAD_CHANNELS.ON_CANCELED, { taskId: 'test-task-id' });
+      expect(broadcast).toHaveBeenCalledWith(DOWNLOAD_CHANNELS.ON_CANCELED, {
+        taskId: 'test-task-id',
+      });
     });
   });
 
   describe('LIST_TASKS handler', () => {
-    const listHandler = downloadHandlers.find(h => h.channel === DOWNLOAD_CHANNELS.LIST_TASKS);
+    const listHandler = downloadHandlers.find((h) => h.channel === DOWNLOAD_CHANNELS.LIST_TASKS);
     if (!listHandler) throw new Error('LIST_TASKS handler not found');
 
     it('should return empty array when no tasks', async () => {

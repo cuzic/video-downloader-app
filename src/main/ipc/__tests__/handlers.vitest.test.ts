@@ -35,7 +35,7 @@ function getHandler(
   handlers: Array<{ channel: string; handler: IpcHandler<any[], any> }>,
   channel: string
 ): IpcHandler<any[], any> {
-  const handler = handlers.find(h => h.channel === channel)?.handler;
+  const handler = handlers.find((h) => h.channel === channel)?.handler;
   if (!handler) throw new Error(`Handler not found for channel: ${channel}`);
   return handler;
 }
@@ -88,7 +88,7 @@ describe('Download Handlers', () => {
 
     it('should validate required fields', async () => {
       const handler = getHandler(downloadHandlers, 'app:download:start');
-      
+
       await expect(handler(mockEvent, null)).rejects.toThrow();
     });
   });
@@ -97,7 +97,7 @@ describe('Download Handlers', () => {
     it('should pause a download task', async () => {
       const taskId = 'task-123';
       const handler = getHandler(downloadHandlers, 'app:download:pause');
-      
+
       await handler(mockEvent, taskId);
 
       expect(mockTaskRepo.pause).toHaveBeenCalledWith(taskId);
@@ -105,7 +105,7 @@ describe('Download Handlers', () => {
 
     it('should validate task ID', async () => {
       const handler = getHandler(downloadHandlers, 'app:download:pause');
-      
+
       await expect(handler(mockEvent, null)).rejects.toThrow();
     });
   });
@@ -195,7 +195,7 @@ describe('Settings Handlers', () => {
 
     it('should validate required fields', async () => {
       const handler = getHandler(settingsHandlers, 'app:settings:set');
-      
+
       await expect(handler(mockEvent, null, 'value')).rejects.toThrow();
     });
   });
@@ -265,15 +265,15 @@ describe('System Handlers', () => {
   describe('GET_PATH handler', () => {
     it('should return system paths', async () => {
       const handler = getHandler(systemHandlers, 'app:system:getPath');
-      
+
       const result = await handler(mockEvent, 'downloads');
-      
+
       expect(result).toBe('/mock/path/downloads');
     });
 
     it('should validate path name', async () => {
       const handler = getHandler(systemHandlers, 'app:system:getPath');
-      
+
       await expect(handler(mockEvent, 'invalid' as any)).rejects.toThrow();
     });
   });
@@ -281,9 +281,9 @@ describe('System Handlers', () => {
   describe('GET_VERSION handler', () => {
     it('should return app version', async () => {
       const handler = getHandler(systemHandlers, 'app:system:getVersion');
-      
+
       const result = await handler(mockEvent);
-      
+
       expect(result).toBe('1.0.0');
     });
   });

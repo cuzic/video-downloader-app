@@ -31,17 +31,9 @@ if (!existsSync('.env')) {
 }
 
 // Create necessary directories
-const directories = [
-  'data',
-  'database',
-  'database/backups',
-  'logs',
-  'tmp',
-  'dist',
-  'coverage',
-];
+const directories = ['data', 'database', 'database/backups', 'logs', 'tmp', 'dist', 'coverage'];
 
-directories.forEach(dir => {
+directories.forEach((dir) => {
   if (!existsSync(dir)) {
     mkdirSync(dir, { recursive: true });
     console.log(`✓ Created directory: ${dir}`);
@@ -75,7 +67,7 @@ try {
   } else {
     console.log('✓ Database already exists');
   }
-  
+
   // Run migrations if available
   if (existsSync('src/main/db/migrate.ts')) {
     console.log('Running database migrations...');

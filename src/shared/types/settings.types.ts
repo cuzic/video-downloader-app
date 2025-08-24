@@ -20,8 +20,8 @@ export interface WindowConfig {
 
 export interface DetectionConfig {
   enabled: boolean;
-  minFileSize?: number;       // bytes
-  maxFileSize?: number;       // bytes
+  minFileSize?: number; // bytes
+  maxFileSize?: number; // bytes
   mimeTypes?: string[];
   ignoreDomains?: string[];
   allowDomains?: string[];
@@ -29,8 +29,8 @@ export interface DetectionConfig {
 }
 
 export interface DuplicateRenameRule {
-  pattern: string;             // e.g., "{name} ({n}).{ext}"
-  start?: number;              // starting number (default: 1)
+  pattern: string; // e.g., "{name} ({n}).{ext}"
+  start?: number; // starting number (default: 1)
 }
 
 export interface ProxyConfig {
@@ -52,41 +52,41 @@ export interface AppSettings {
   maxConcurrentDownloads: number;
   autoStartDownload: boolean;
   notificationEnabled: boolean;
-  
+
   // FFmpeg settings
   ffmpegPath: string;
   ffmpegArgs?: string[];
-  
+
   // Proxy settings
   proxy?: ProxyConfig;
-  
+
   // UI settings
   theme: Theme;
   language: string;
   windowConfig?: WindowConfig;
-  
+
   // Advanced settings
   userAgent?: string;
   downloadQualityPreference: QualityPreference;
   qualityRule?: CustomQualityRule;
   duplicateAction: DuplicateAction;
   duplicateRenameRule?: DuplicateRenameRule;
-  
+
   // Notification settings
   completedNotification: {
     enabled: boolean;
     autoOpenFolder: boolean;
   };
-  
+
   // Auto update
   autoUpdate: {
     enabled: boolean;
     checkIntervalHours: number;
   };
-  
+
   // Detection settings
   detection: DetectionConfig;
-  
+
   // Retry settings
   downloadRetry: RetryPolicy;
   segmentRetry: {
