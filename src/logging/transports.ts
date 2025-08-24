@@ -56,6 +56,39 @@ function ensureLogDir(logDir: string): void {
 }
 
 /**
+ * Create a DailyRotateFile transport with common configuration
+ */
+function createRotatingFileTransport(
+  logDir: string,
+  filename: string,
+  level: string,
+  maxFiles: string = LOG_MAX_FILES
+): DailyRotateFile {
+  return new DailyRotateFile({
+    dirname: logDir,
+    filename,
+    datePattern: LOG_DATE_PATTERN,
+    maxFiles,
+    maxSize: LOG_MAX_SIZE,
+    zippedArchive: true,
+    level,
+    format: jsonLineFormat,
+  });
+}
+
+/**
+ * Create a File transport with common configuration
+ */
+function createFileTransport(logDir: string, filename: string): transports.FileTransportInstance {
+  return new transports.File({
+    filename: path.join(logDir, filename),
+    format: jsonLineFormat,
+    maxsize: LOG_MAX_SIZE,
+    maxFiles: 5,
+  });
+}
+
+/**
  * Build transports array based on environment
  * @param logDir Directory for log files
  * @param env Environment (development/production)
@@ -67,45 +100,17 @@ export function buildTransports(logDir: string, env: string): transport[] {
   const isDevelopment = env === 'development';
   const logLevel = isDevelopment ? 'debug' : 'info';
 
-  const transportList: transport[] = [];
-
-  // Console transport with color in development
-  transportList.push(
+  return [
+    // Console transport with color in development
     new transports.Console({
       level: logLevel,
       format: isDevelopment ? devFormat : jsonLineFormat,
-    })
-  );
-
-  // Daily rotating file for all logs
-  transportList.push(
-    new DailyRotateFile({
-      dirname: logDir,
-      filename: 'app-%DATE%.log',
-      datePattern: LOG_DATE_PATTERN,
-      maxFiles: LOG_MAX_FILES,
-      maxSize: LOG_MAX_SIZE,
-      zippedArchive: true, // Compress old files
-      level: logLevel,
-      format: jsonLineFormat,
-    })
-  );
-
-  // Separate error log file
-  transportList.push(
-    new DailyRotateFile({
-      dirname: logDir,
-      filename: 'error-%DATE%.log',
-      datePattern: LOG_DATE_PATTERN,
-      maxFiles: '30d', // Keep errors for 30 days
-      maxSize: LOG_MAX_SIZE,
-      zippedArchive: true,
-      level: 'error',
-      format: jsonLineFormat,
-    })
-  );
-
-  return transportList;
+    }),
+    // Daily rotating file for all logs
+    createRotatingFileTransport(logDir, 'app-%DATE%.log', logLevel),
+    // Separate error log file (keep for 30 days)
+    createRotatingFileTransport(logDir, 'error-%DATE%.log', 'error', '30d'),
+  ];
 }
 
 /**
@@ -113,15 +118,7 @@ export function buildTransports(logDir: string, env: string): transport[] {
  */
 export function buildExceptionHandlers(logDir: string): transport[] {
   ensureLogDir(logDir);
-
-  return [
-    new transports.File({
-      filename: path.join(logDir, 'exceptions.log'),
-      format: jsonLineFormat,
-      maxsize: LOG_MAX_SIZE,
-      maxFiles: 5,
-    }),
-  ];
+  return [createFileTransport(logDir, 'exceptions.log')];
 }
 
 /**
@@ -129,15 +126,7 @@ export function buildExceptionHandlers(logDir: string): transport[] {
  */
 export function buildRejectionHandlers(logDir: string): transport[] {
   ensureLogDir(logDir);
-
-  return [
-    new transports.File({
-      filename: path.join(logDir, 'rejections.log'),
-      format: jsonLineFormat,
-      maxsize: LOG_MAX_SIZE,
-      maxFiles: 5,
-    }),
-  ];
+  return [createFileTransport(logDir, 'rejections.log')];
 }
 
 /**
