@@ -58,15 +58,36 @@ describe('SecretsMigration', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
 
-    // Get mocked instances
-    const Store = (await import('electron-store')).default;
-    const { SecretsService } = await import('../secrets.service');
+    // Create mock instances
+    mockStore = {
+      get: vi.fn(),
+      set: vi.fn(),
+      delete: vi.fn(),
+      has: vi.fn(),
+    };
+
+    mockSecretsService = {
+      isAvailable: vi.fn().mockResolvedValue(true),
+      saveProxyCredentials: vi.fn().mockResolvedValue(undefined),
+      saveApiToken: vi.fn().mockResolvedValue(undefined),
+      saveCustomSecret: vi.fn().mockResolvedValue(undefined),
+      listSecrets: vi.fn().mockResolvedValue([]),
+      getProxyCredentials: vi.fn().mockResolvedValue(null),
+      getApiToken: vi.fn().mockResolvedValue(null),
+      getCustomSecret: vi.fn().mockResolvedValue(null),
+      deleteProxyCredentials: vi.fn().mockResolvedValue(true),
+      deleteApiToken: vi.fn().mockResolvedValue(true),
+      deleteCustomSecret: vi.fn().mockResolvedValue(true),
+    };
+
+    // Update mocks to return our instances
+    const Store = (await import('electron-store')).default as any;
+    Store.mockImplementation(() => mockStore);
+
+    const { SecretsService } = await import('../secrets.service') as any;
+    SecretsService.mockImplementation(() => mockSecretsService);
 
     migration = new SecretsMigration();
-
-    // Access the mocked instances
-    mockStore = (Store as any).mock.results[0].value;
-    mockSecretsService = (SecretsService as any).mock.results[0].value;
   });
 
   afterEach(() => {
@@ -97,12 +118,10 @@ describe('SecretsMigration', () => {
         if (key === 'secrets.migrated') return false;
         if (key === 'settings') {
           return {
-            network: {
-              proxy: {
-                auth: {
-                  username: 'proxyuser',
-                  password: 'proxypass',
-                },
+            proxy: {
+              auth: {
+                username: 'proxyuser',
+                password: 'proxypass',
               },
             },
           };
@@ -136,12 +155,10 @@ describe('SecretsMigration', () => {
   describe('migrate', () => {
     it('should migrate proxy credentials successfully', async () => {
       const settings = {
-        network: {
-          proxy: {
-            auth: {
-              username: 'proxyuser',
-              password: 'proxypass',
-            },
+        proxy: {
+          auth: {
+            username: 'proxyuser',
+            password: 'proxypass',
           },
         },
       };
@@ -163,11 +180,10 @@ describe('SecretsMigration', () => {
       expect(mockStore.set).toHaveBeenCalledWith(
         'settings',
         expect.objectContaining({
-          network: {
-            proxy: {
-              auth: {
-                username: 'proxyuser',
-              },
+          proxy: {
+            auth: {
+              username: 'proxyuser',
+              password: '',
             },
           },
         })
@@ -218,12 +234,10 @@ describe('SecretsMigration', () => {
 
     it('should handle migration errors gracefully', async () => {
       const settings = {
-        network: {
-          proxy: {
-            auth: {
-              username: 'proxyuser',
-              password: 'proxypass',
-            },
+        proxy: {
+          auth: {
+            username: 'proxyuser',
+            password: 'proxypass',
           },
         },
       };
@@ -275,12 +289,10 @@ describe('SecretsMigration', () => {
       expect(mockStore.set).toHaveBeenCalledWith(
         'settings',
         expect.objectContaining({
-          network: {
-            proxy: {
-              auth: {
-                username: 'testuser',
-                password: 'testpass',
-              },
+          proxy: {
+            auth: {
+              username: 'testuser',
+              password: 'testpass',
             },
           },
         })
