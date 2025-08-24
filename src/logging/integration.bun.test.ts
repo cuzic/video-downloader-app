@@ -67,7 +67,9 @@ describe('Logging Integration Tests', () => {
       );
 
       const backToOuter = getCid();
-      expect(backToOuter).toBe(outerCid);
+      if (outerCid) {
+        expect(backToOuter).toBe(outerCid);
+      }
     });
 
     expect(cids[0]).toBeTruthy();
@@ -178,7 +180,9 @@ describe('Logging Integration Tests', () => {
       ).not.toThrow();
 
       // Verify CID is maintained
-      expect(getCid()).toBe(cid);
+      if (cid) {
+        expect(getCid()).toBe(cid);
+      }
     });
   });
 

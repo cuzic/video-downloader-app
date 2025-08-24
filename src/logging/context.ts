@@ -5,7 +5,7 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { randomUUID } from 'node:crypto';
 
-type Context = {
+export type Context = {
   cid: string; // Correlation ID
   scope?: string; // Optional scope identifier
   userId?: string; // Optional user identifier

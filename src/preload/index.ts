@@ -177,10 +177,12 @@ const ulog: ULog = {
     ULog,
     (typeof logLevels)[number]
   >),
-  withCid: (cid: string) =>
-    Object.fromEntries(
+  withCid: (cid: string) => {
+    const withCidFunctions = Object.fromEntries(
       logLevels.map((level) => [level, createLogFunction(level, cid)])
-    ) as ReturnType<ULog['withCid']>,
+    ) as unknown as ReturnType<ULog['withCid']>;
+    return withCidFunctions;
+  },
 };
 
 // Expose the APIs to the renderer process
