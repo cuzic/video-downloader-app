@@ -1,4 +1,4 @@
-import { IpcMainInvokeEvent } from 'electron';
+import type { IpcMainInvokeEvent } from 'electron';
 import type { AppSettings } from '@/shared/types';
 import { SETTINGS_CHANNELS } from '@/shared/constants/channels';
 import { wrapHandler, validateRequired } from '../utils/error-handler';
@@ -27,13 +27,15 @@ export const settingsHandlers = [
   },
   {
     channel: SETTINGS_CHANNELS.SET,
-    handler: wrapHandler(async (_event: IpcMainInvokeEvent, key: string, value: any): Promise<void> => {
-      validateRequired({ key }, ['key']);
-      await getSettingsRepo().set(key, value);
-      
-      // Broadcast change to all windows
-      broadcast(SETTINGS_CHANNELS.ON_CHANGED, { key, value });
-    }),
+    handler: wrapHandler(
+      async (_event: IpcMainInvokeEvent, key: string, value: any): Promise<void> => {
+        validateRequired({ key }, ['key']);
+        await getSettingsRepo().set(key, value);
+
+        // Broadcast change to all windows
+        broadcast(SETTINGS_CHANNELS.ON_CHANGED, { key, value });
+      }
+    ),
   },
   {
     channel: SETTINGS_CHANNELS.GET_ALL,
@@ -47,7 +49,8 @@ export const settingsHandlers = [
     channel: 'app:settings:initialize',
     handler: wrapHandler(async (_event: IpcMainInvokeEvent): Promise<void> => {
       // Initialize default settings if not present
-      const defaults: Partial<AppSettings> = {
+      // Note: This is deprecated - use the new settings system instead
+      const defaults: Record<string, any> = {
         downloadDirectory: '',
         maxConcurrentDownloads: 3,
         autoStartDownload: false,
@@ -58,7 +61,7 @@ export const settingsHandlers = [
         downloadQualityPreference: 'highest',
         duplicateAction: 'skip',
       };
-      
+
       for (const [key, value] of Object.entries(defaults)) {
         const existing = await getSettingsRepo().get(key);
         if (!existing) {
@@ -76,13 +79,13 @@ export const settingsHandlers = [
       for (const key of Object.keys(allSettings)) {
         await getSettingsRepo().set(key, null);
       }
-      
+
       // Reinitialize with defaults
-      const initHandler = settingsHandlers.find(h => h.channel === 'app:settings:initialize');
+      const initHandler = settingsHandlers.find((h) => h.channel === 'app:settings:initialize');
       if (initHandler) {
         await initHandler.handler(_event, undefined as any, undefined as any);
       }
-      
+
       // Broadcast reset event
       broadcast(SETTINGS_CHANNELS.ON_CHANGED, { key: 'all', value: null });
     }),

@@ -10,7 +10,19 @@ export type {
 } from './download.types';
 
 // Settings types
-export type { AppSettings } from './settings.types';
+export type {
+  AppSettings,
+  GeneralSettings,
+  QualitySettings,
+  NetworkSettings,
+  UISettings,
+  AdvancedSettings,
+  SettingKey,
+  SettingSectionKey,
+  SettingsChangeEvent,
+  SettingsValidationResult,
+  SettingsMigration,
+} from './settings';
 
 // Media types
 export type { MediaType } from './media.types';
