@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
+# Check for empty directories
+node scripts/check-empty-dirs.js || exit 1
 
 bunx lint-staged
