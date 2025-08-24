@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterAll } from 'bun:test';
+import { describe, it, expect, beforeEach, afterAll } from 'vitest';
 import Database from 'better-sqlite3';
 import {
   TaskRepository,
@@ -14,7 +14,7 @@ import {
 const sqlite = new Database(':memory:');
 
 // Mock electron app
-(global as any).app = {
+(global as unknown as any).app = {
   getPath: (name: string) => {
     if (name === 'downloads') return '/tmp/downloads';
     if (name === 'userData') return '/tmp/userData';
@@ -23,7 +23,7 @@ const sqlite = new Database(':memory:');
 };
 
 // Initialize test database schema
-beforeEach(async () => {
+beforeEach(() => {
   // Create tables
   sqlite.exec(`
     CREATE TABLE IF NOT EXISTS tasks (
@@ -196,7 +196,7 @@ describe('TaskRepository', () => {
 
     const taskId = await taskRepo.create(spec);
     await taskRepo.updateStatus(taskId, 'running');
-    
+
     const task = await taskRepo.getById(taskId);
     expect(task?.status).toBe('running');
   });
@@ -248,7 +248,7 @@ describe('SettingsRepository', () => {
   it('should get all settings', async () => {
     await settingsRepo.set('app.theme', 'dark');
     await settingsRepo.set('app.language', 'en');
-    
+
     const all = await settingsRepo.getAll();
     expect(all['app.theme']).toBe('dark');
     expect(all['app.language']).toBe('en');
@@ -281,7 +281,7 @@ describe('DetectionRepository', () => {
 
     await detectionRepo.upsert(detection);
     await detectionRepo.incrementDownloadCount(detection.id);
-    
+
     const retrieved = await detectionRepo.getById(detection.id);
     expect(retrieved?.downloadCount).toBe(1);
   });
@@ -295,7 +295,7 @@ describe('DetectionRepository', () => {
 
     await detectionRepo.create(detection);
     await detectionRepo.markForDeletion(detection.id);
-    
+
     const retrieved = await detectionRepo.getById(detection.id);
     expect(retrieved?.autoDelete).toBe(1);
   });
@@ -308,7 +308,7 @@ describe('HistoryRepository', () => {
     await historyRepo.logTaskEvent('task-1', 'created', { url: 'test.com' });
     await historyRepo.logTaskEvent('task-1', 'started');
     await historyRepo.logTaskEvent('task-1', 'completed');
-    
+
     const history = await historyRepo.getTaskHistory('task-1');
     expect(history.length).toBe(3);
     expect(history[0]?.event).toBe('created');
@@ -318,7 +318,7 @@ describe('HistoryRepository', () => {
     await historyRepo.logCreated('task-2', 'https://example.com');
     await historyRepo.logStarted('task-2');
     await historyRepo.logCompleted('task-2', { duration: 1000 });
-    
+
     const events = await historyRepo.getEventsByType('completed', 10);
     expect(events.length).toBeGreaterThan(0);
   });
@@ -327,7 +327,7 @@ describe('HistoryRepository', () => {
 describe('SegmentRepository', () => {
   const segmentRepo = new SegmentRepository();
 
-  beforeEach(async () => {
+  beforeEach(() => {
     // Create a test task
     sqlite.exec(`
       INSERT INTO tasks (id, url, media_type) 
@@ -348,13 +348,11 @@ describe('SegmentRepository', () => {
   });
 
   it('should track segment progress', async () => {
-    const segments = [
-      { segmentIndex: 0, url: 'https://example.com/seg0.ts' },
-    ];
+    const segments = [{ segmentIndex: 0, url: 'https://example.com/seg0.ts' }];
 
     await segmentRepo.createBatch('test-task-1', segments);
     await segmentRepo.markCompleted('test-task-1', 0, '/tmp/seg0.ts');
-    
+
     const progress = await segmentRepo.getProgress('test-task-1');
     expect(progress.completed).toBe(1);
     expect(progress.total).toBe(1);
@@ -410,10 +408,10 @@ describe('AuditLogRepository', () => {
   it('should search logs with filters', async () => {
     await auditRepo.logDownloadEvent('task-123', 'started');
     await auditRepo.logSecurityEvent('suspicious', 'Suspicious activity detected');
-    
+
     const downloadLogs = await auditRepo.search({ category: 'download' });
     const securityLogs = await auditRepo.search({ category: 'security' });
-    
+
     expect(downloadLogs.length).toBeGreaterThan(0);
     expect(securityLogs.length).toBeGreaterThan(0);
   });

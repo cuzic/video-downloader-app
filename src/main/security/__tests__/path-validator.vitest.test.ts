@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'bun:test';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { PathValidator } from '../path-validator';
 import path from 'path';
 import os from 'os';
