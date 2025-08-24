@@ -8,6 +8,11 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { devFormat, jsonLineFormat } from './formats';
 
+// Configuration from environment variables
+const LOG_MAX_SIZE = process.env.LOG_MAX_SIZE ? parseInt(process.env.LOG_MAX_SIZE, 10) : 5242880; // 5MB default
+const LOG_MAX_FILES = process.env.LOG_MAX_FILES || '14d';
+const LOG_DATE_PATTERN = process.env.LOG_DATE_PATTERN || 'YYYY-MM-DD';
+
 /**
  * Ensure log directory exists
  */
@@ -44,9 +49,9 @@ export function buildTransports(logDir: string, env: string): transport[] {
     new DailyRotateFile({
       dirname: logDir,
       filename: 'app-%DATE%.log',
-      datePattern: 'YYYY-MM-DD',
-      maxFiles: '14d', // Keep 14 days
-      maxSize: '20m', // 20MB per file
+      datePattern: LOG_DATE_PATTERN,
+      maxFiles: LOG_MAX_FILES,
+      maxSize: LOG_MAX_SIZE,
       zippedArchive: true, // Compress old files
       level: logLevel,
       format: jsonLineFormat,
@@ -58,9 +63,9 @@ export function buildTransports(logDir: string, env: string): transport[] {
     new DailyRotateFile({
       dirname: logDir,
       filename: 'error-%DATE%.log',
-      datePattern: 'YYYY-MM-DD',
+      datePattern: LOG_DATE_PATTERN,
       maxFiles: '30d', // Keep errors for 30 days
-      maxSize: '20m',
+      maxSize: LOG_MAX_SIZE,
       zippedArchive: true,
       level: 'error',
       format: jsonLineFormat,
@@ -80,7 +85,7 @@ export function buildExceptionHandlers(logDir: string): transport[] {
     new transports.File({
       filename: path.join(logDir, 'exceptions.log'),
       format: jsonLineFormat,
-      maxsize: 5242880, // 5MB
+      maxsize: LOG_MAX_SIZE,
       maxFiles: 5,
     }),
   ];
@@ -96,7 +101,7 @@ export function buildRejectionHandlers(logDir: string): transport[] {
     new transports.File({
       filename: path.join(logDir, 'rejections.log'),
       format: jsonLineFormat,
-      maxsize: 5242880, // 5MB
+      maxsize: LOG_MAX_SIZE,
       maxFiles: 5,
     }),
   ];
