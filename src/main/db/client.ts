@@ -27,15 +27,15 @@ export function initializePragma(): void {
 }
 
 // Initialize database on app startup
-export async function initializeDatabase(): Promise<void> {
+export function initializeDatabase(): void {
   initializePragma();
   
   // Run custom migrations if needed
-  await runCustomMigrations();
+  runCustomMigrations();
 }
 
 // Execute custom SQL (constraints, views, triggers, etc.)
-async function runCustomMigrations(): Promise<void> {
+function runCustomMigrations(): void {
   // This will be implemented in migrations/custom
   // For now, just ensure the database is ready
   console.log('Database initialized at:', dbPath);
