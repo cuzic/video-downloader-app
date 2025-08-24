@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
 echo "🔍 Running pre-push checks..."
@@ -10,10 +10,11 @@ pnpm run typecheck || {
   exit 1
 }
 
-# Run tests with exit code 0 if at least 80% pass
+# Run tests and capture exit code separately
 echo "🧪 Running tests..."
-pnpm test 2>&1 | tee /tmp/test-output.txt
-TEST_EXIT_CODE=${PIPESTATUS[0]}
+pnpm test > /tmp/test-output.txt 2>&1
+TEST_EXIT_CODE=$?
+cat /tmp/test-output.txt
 
 # Check if tests passed (exit code 0) or extract pass rate
 if [ $TEST_EXIT_CODE -eq 0 ]; then
