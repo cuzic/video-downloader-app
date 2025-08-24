@@ -98,25 +98,36 @@ export class Logger {
     return this.scope ? { scope: this.scope, ...meta } : meta || {};
   }
 
-  info(message: string, meta?: object): void {
-    logInfo(message, this.enrichWithScope(meta));
+  private log(level: LogLevel, message: string, errorOrMeta?: Error | object, meta?: object): void {
+    const enrichedMeta = this.enrichWithScope(
+      level === 'error' && errorOrMeta instanceof Error ? meta : (errorOrMeta as object)
+    );
+
+    switch (level) {
+      case 'error':
+        logError(message, errorOrMeta instanceof Error ? errorOrMeta : undefined, enrichedMeta);
+        break;
+      case 'warn':
+        logWarn(message, enrichedMeta);
+        break;
+      case 'info':
+        logInfo(message, enrichedMeta);
+        break;
+      case 'debug':
+        logDebug(message, enrichedMeta);
+        break;
+      case 'verbose':
+        logVerbose(message, enrichedMeta);
+        break;
+    }
   }
 
-  warn(message: string, meta?: object): void {
-    logWarn(message, this.enrichWithScope(meta));
-  }
-
-  error(message: string, error?: Error, meta?: object): void {
-    logError(message, error, this.enrichWithScope(meta));
-  }
-
-  debug(message: string, meta?: object): void {
-    logDebug(message, this.enrichWithScope(meta));
-  }
-
-  verbose(message: string, meta?: object): void {
-    logVerbose(message, this.enrichWithScope(meta));
-  }
+  info = (message: string, meta?: object): void => this.log('info', message, meta);
+  warn = (message: string, meta?: object): void => this.log('warn', message, meta);
+  error = (message: string, error?: Error, meta?: object): void =>
+    this.log('error', message, error, meta);
+  debug = (message: string, meta?: object): void => this.log('debug', message, meta);
+  verbose = (message: string, meta?: object): void => this.log('verbose', message, meta);
 
   /**
    * Create a child logger with additional scope
