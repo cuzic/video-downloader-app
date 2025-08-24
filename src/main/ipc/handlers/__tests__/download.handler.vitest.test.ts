@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { IpcMainInvokeEvent } from 'electron';
+import type { IpcMainInvokeEvent } from 'electron';
 import { downloadHandlers } from '../download.handler';
 import { DOWNLOAD_CHANNELS } from '@/shared/constants/channels';
 import type { DownloadSpec } from '@/shared/types';
