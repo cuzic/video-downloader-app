@@ -63,13 +63,22 @@ src/main/
 │   └── utils/                 # IPC utilities
 │       ├── error-handler.ts  # Error handling wrapper
 │       └── performance.ts    # Rate limiting, caching
-└── security/                  # Security modules
-    ├── __tests__/
-    ├── csp.ts                # Content Security Policy
-    ├── path-validator.ts      # Path traversal prevention
-    ├── network-security.ts    # SSRF prevention
-    ├── drm-detector.ts        # DRM detection
-    └── legal-consent.ts       # Terms acceptance
+├── security/                  # Security modules
+│   ├── __tests__/
+│   ├── csp.ts                # Content Security Policy
+│   ├── path-validator.ts      # Path traversal prevention
+│   ├── network-security.ts    # SSRF prevention
+│   ├── drm-detector.ts        # DRM detection
+│   └── legal-consent.ts       # Terms acceptance
+└── logging/                   # Logging system (NEW)
+    ├── config.ts              # Configuration management
+    ├── context.ts             # Correlation ID tracking
+    ├── exceptions.ts          # Global error handlers
+    ├── formats.ts             # Log formats & PII masking
+    ├── index.ts               # Public API exports
+    ├── ipc.ts                 # IPC handlers for logging
+    ├── logger.ts              # Main logger implementation
+    └── transports.ts          # Winston transports config
 ```
 
 ### `/src/renderer` - Renderer Process (React UI)
@@ -102,7 +111,7 @@ Bridge between main and renderer processes with security context.
 
 ```
 src/preload/
-├── index.ts              # Preload script
+├── index.ts              # Preload script with ulog API
 └── types.d.ts           # Window API types
 ```
 
@@ -120,7 +129,8 @@ src/shared/
 │   ├── download.types.ts
 │   ├── media.types.ts
 │   ├── settings.types.ts
-│   └── error.types.ts
+│   ├── error.types.ts
+│   └── logging.ts      # Logging types (NEW)
 ├── validation.ts        # Zod validation schemas
 └── __tests__/          # Shared code tests
     └── validation.bun.test.ts
@@ -133,6 +143,7 @@ Test setup and utilities.
 ```
 src/test/
 ├── setup.ts            # Test environment setup
+├── mock-utils.ts       # Mock utilities
 ├── alias-test.bun.test.ts
 └── alias-test.vitest.test.ts
 ```
@@ -202,7 +213,7 @@ dist-electron/         # Electron distribution packages
 ## Key Principles
 
 ### 1. Separation of Concerns
-- Main process: System operations, database, downloads
+- Main process: System operations, database, downloads, logging
 - Renderer process: UI and user interactions
 - Preload: Secure bridge with minimal API surface
 
@@ -220,6 +231,11 @@ dist-electron/         # Electron distribution packages
 - All security modules in `/src/main/security`
 - Input validation at boundaries
 - Path and network security enforced
+
+### 5. Observability
+- Comprehensive logging with correlation IDs
+- PII masking for sensitive data
+- Structured logging with Winston
 
 ## Import Aliases
 
@@ -248,6 +264,7 @@ When adding new features, follow this structure:
 6. **UI Components**: Add to `/src/renderer/components/`
 7. **Hooks**: Create in `/src/renderer/hooks/`
 8. **Tests**: Add `__tests__` directory next to source
+9. **Logging**: Use the logging API for observability
 
 ## Maintenance
 
@@ -262,6 +279,12 @@ A pre-commit hook (added in PR #41) prevents committing empty directories. See [
 - lint-staged for pre-commit checks
 
 ## Recent Changes
+
+### PR #62 - Logging System Implementation
+- Added comprehensive logging infrastructure
+- Correlation ID tracking
+- PII masking
+- IPC logging handlers
 
 ### PR #39 - Directory Cleanup
 - Removed 8 empty directories
