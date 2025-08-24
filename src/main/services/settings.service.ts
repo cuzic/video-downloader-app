@@ -182,6 +182,9 @@ export class SettingsService extends EventEmitter {
     key: keyof AppSettings[K],
     value: unknown
   ): Promise<void> {
+    if (!section || !key) {
+      throw new Error('Section and key are required');
+    }
     await this.repository.updateSetting(section, key, value);
   }
 
