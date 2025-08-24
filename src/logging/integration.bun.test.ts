@@ -1,8 +1,6 @@
 import { test, expect, describe, beforeAll, afterAll } from 'bun:test';
 import { withContext, getCid } from './context';
 import { logInfo, logWarn, logError, logDebug, Logger } from './logger';
-import { setupLoggingIPC, cleanupLoggingIPC } from './ipc';
-import { setupExceptionHandlers } from './exceptions';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -20,15 +18,10 @@ describe('Logging Integration Tests', () => {
       fs.mkdirSync(TEST_LOG_DIR, { recursive: true });
     }
 
-    // Setup logging components
-    setupExceptionHandlers();
-    setupLoggingIPC();
+    // Note: IPC setup skipped in test environment (requires Electron)
   });
 
   afterAll(() => {
-    // Cleanup IPC handlers
-    cleanupLoggingIPC();
-
     // Clean up test logs
     if (fs.existsSync(TEST_LOG_DIR)) {
       fs.rmSync(TEST_LOG_DIR, { recursive: true, force: true });
