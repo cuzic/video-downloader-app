@@ -2,7 +2,6 @@
 
 import { $ } from 'bun';
 import { Glob } from 'bun';
-import { join } from 'path';
 
 async function runBunTests() {
   // Find all .bun.test.ts files in the src directory
