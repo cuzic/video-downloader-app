@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { TaskRepository } from '../task.repository';
-import { AuditLogRepository } from '../audit-log.repository';
+import type { AuditLogRepository } from '../audit-log.repository';
 import type { DownloadSpec } from '@/shared/types';
 
 // Mock the database client
