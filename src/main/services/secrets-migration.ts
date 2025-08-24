@@ -64,7 +64,7 @@ export class SecretsMigration {
     }
 
     // Check for proxy credentials
-    if (settings.network?.proxy?.auth?.password) {
+    if (settings.proxy?.auth?.password) {
       return true;
     }
 
@@ -108,14 +108,14 @@ export class SecretsMigration {
       const settings = this.store.get('settings') as AppSettings | undefined;
 
       // Migrate proxy credentials
-      if (settings?.network?.proxy?.auth) {
-        const { username, password } = settings.network.proxy.auth;
+      if (settings?.proxy?.auth) {
+        const { username, password } = settings.proxy.auth;
         if (username && password) {
           try {
             await this.secretsService.saveProxyCredentials(username, password);
 
             // Remove password from store, keep username
-            delete settings.network.proxy.auth.password;
+            delete settings.proxy.auth.password;
             this.store.set('settings', settings);
 
             result.migratedCount++;
@@ -232,12 +232,11 @@ export class SecretsMigration {
           if (password) {
             // Restore to store
             const settings = (this.store.get('settings') as AppSettings) || {};
-            if (!settings.network) settings.network = {} as any;
-            if (!settings.network.proxy) settings.network.proxy = {} as any;
-            if (!settings.network.proxy.auth) settings.network.proxy.auth = {} as any;
+            if (!settings.proxy) settings.proxy = {} as any;
+            if (!settings.proxy.auth) settings.proxy.auth = {} as any;
 
-            settings.network.proxy.auth.username = username;
-            settings.network.proxy.auth.password = password;
+            settings.proxy.auth.username = username;
+            settings.proxy.auth.password = password;
 
             this.store.set('settings', settings);
             result.migratedCount++;

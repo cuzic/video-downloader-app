@@ -267,9 +267,9 @@ describe('SecretsService', () => {
       const secrets = await service.listSecrets();
 
       expect(secrets).toHaveLength(3);
-      expect(secrets[0].account).toBe('proxy-user1');
-      expect(secrets[1].account).toBe('api-github');
-      expect(secrets[2].account).toBe('custom-db');
+      if (secrets[0]) expect(secrets[0].account).toBe('proxy-user1');
+      if (secrets[1]) expect(secrets[1].account).toBe('api-github');
+      if (secrets[2]) expect(secrets[2].account).toBe('custom-db');
     });
 
     it('should return empty array on error', async () => {
