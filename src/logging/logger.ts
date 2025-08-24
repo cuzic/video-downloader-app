@@ -11,24 +11,23 @@ import {
   getLogDir,
 } from './transports';
 import { enrich } from './context';
+import { config } from './config';
+import type { LogLevel } from './config';
 
-// Environment configuration
-const env = process.env.NODE_ENV || 'development';
+// Get log directory from config
 const logDir = getLogDir();
 
 // Create Winston logger instance
 const winstonLogger: WinstonLogger = createLogger({
-  level: process.env.APP_LOG_LEVEL || (env === 'development' ? 'debug' : 'info'),
-  transports: buildTransports(logDir, env),
+  level: config.logLevel,
+  transports: buildTransports(logDir),
   exceptionHandlers: buildExceptionHandlers(logDir),
   rejectionHandlers: buildRejectionHandlers(logDir),
   exitOnError: false, // Don't exit on handled exceptions
 });
 
-/**
- * Log levels type
- */
-export type LogLevel = 'error' | 'warn' | 'info' | 'debug' | 'verbose';
+// Export LogLevel type from config
+export type { LogLevel } from './config';
 
 /**
  * Unified log function with correlation ID enrichment
@@ -147,6 +146,10 @@ export const logger = new Logger();
  * Log application startup
  */
 export function logStartup(version: string, meta?: object): void {
+  // Log any configuration warnings first
+  const warnings = config.getValidationWarnings();
+  warnings.forEach((warning) => logWarn(warning));
+
   logInfo('Application started', { version, ...meta });
 }
 
