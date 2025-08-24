@@ -1,8 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import type { Mock } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TaskRepository } from '../task.repository';
 import type { AuditLogRepository } from '../audit-log.repository';
 import type { DownloadSpec } from '@/shared/types';
+import { RepositoryMockBuilder } from '@/test/builders/repository-mock.builder';
+import { expectMockCalled, expectMockNotCalled } from '@/test/utils/mock-assertions';
+import { setupMocks } from '@/test/utils/setup';
 
 // Mock the database client
 vi.mock('../../client', () => ({
@@ -34,19 +36,20 @@ vi.mock('../../client', () => ({
 }));
 
 describe('TaskRepository', () => {
+  setupMocks();
+
   let taskRepo: TaskRepository;
   let mockAuditLogRepo: AuditLogRepository;
 
   beforeEach(() => {
-    mockAuditLogRepo = {
-      logDownloadEvent: vi.fn(),
-    } as unknown as AuditLogRepository;
+    // Use the RepositoryMockBuilder for type-safe mock creation
+    mockAuditLogRepo = new RepositoryMockBuilder<AuditLogRepository>()
+      .withMethod('logDownloadEvent')
+      .withMethod('error')
+      .withMethod('info')
+      .build();
 
     taskRepo = new TaskRepository('/default/save/dir');
-  });
-
-  afterEach(() => {
-    vi.clearAllMocks();
   });
 
   describe('create', () => {
@@ -61,9 +64,9 @@ describe('TaskRepository', () => {
       const taskId = await taskRepo.create(spec);
 
       expect(taskId).toBe('test-id-123');
+      // Use type-safe assertion helper
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      const logDownloadEvent = mockAuditLogRepo.logDownloadEvent as Mock;
-      expect(logDownloadEvent).toHaveBeenCalledWith('test-id-123', 'task_created', {
+      expectMockCalled(mockAuditLogRepo.logDownloadEvent, 'test-id-123', 'task_created', {
         url: spec.url,
       });
     });
@@ -74,6 +77,8 @@ describe('TaskRepository', () => {
       } as DownloadSpec;
 
       await expect(taskRepo.create(invalidSpec)).rejects.toThrow('URL is required');
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expectMockNotCalled(mockAuditLogRepo.logDownloadEvent);
     });
 
     it('should sanitize filename', async () => {
@@ -87,6 +92,10 @@ describe('TaskRepository', () => {
       const taskId = await taskRepo.create(spec);
 
       expect(taskId).toBe('test-id-123');
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expectMockCalled(mockAuditLogRepo.logDownloadEvent, 'test-id-123', 'task_created', {
+        url: spec.url,
+      });
     });
   });
 
@@ -95,8 +104,7 @@ describe('TaskRepository', () => {
       await taskRepo.pause('test-id-123');
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      const logDownloadEvent = mockAuditLogRepo.logDownloadEvent as Mock;
-      expect(logDownloadEvent).toHaveBeenCalledWith('test-id-123', 'task_paused', undefined);
+      expectMockCalled(mockAuditLogRepo.logDownloadEvent, 'test-id-123', 'task_paused', undefined);
     });
   });
 
@@ -105,8 +113,7 @@ describe('TaskRepository', () => {
       await taskRepo.resume('test-id-123');
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      const logDownloadEvent = mockAuditLogRepo.logDownloadEvent as Mock;
-      expect(logDownloadEvent).toHaveBeenCalledWith('test-id-123', 'task_resumed', undefined);
+      expectMockCalled(mockAuditLogRepo.logDownloadEvent, 'test-id-123', 'task_resumed', undefined);
     });
   });
 
@@ -115,8 +122,12 @@ describe('TaskRepository', () => {
       await taskRepo.cancel('test-id-123');
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      const logDownloadEvent = mockAuditLogRepo.logDownloadEvent as Mock;
-      expect(logDownloadEvent).toHaveBeenCalledWith('test-id-123', 'task_canceled', undefined);
+      expectMockCalled(
+        mockAuditLogRepo.logDownloadEvent,
+        'test-id-123',
+        'task_canceled',
+        undefined
+      );
     });
   });
 
@@ -125,8 +136,7 @@ describe('TaskRepository', () => {
       await taskRepo.retry('test-id-123');
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      const logDownloadEvent = mockAuditLogRepo.logDownloadEvent as Mock;
-      expect(logDownloadEvent).toHaveBeenCalledWith('test-id-123', 'task_retried', undefined);
+      expectMockCalled(mockAuditLogRepo.logDownloadEvent, 'test-id-123', 'task_retried', undefined);
     });
   });
 });
