@@ -173,12 +173,17 @@ export class SettingsStoreRepository {
     key: keyof AppSettings[K],
     value: unknown
   ): Promise<void> {
-    const currentSection = await this.get(section);
-    const updatedSection = {
-      ...currentSection,
-      [key]: value,
-    };
-    await this.set(section, updatedSection);
+    try {
+      const currentSection = await this.get(section);
+      const updatedSection = {
+        ...currentSection,
+        [key]: value,
+      };
+      await this.set(section, updatedSection);
+    } catch (error) {
+      logger.error(`Failed to update setting ${section}.${String(key)}`, error as Error);
+      throw new Error(`Failed to update setting: ${(error as Error).message}`);
+    }
   }
 
   /**
@@ -385,8 +390,10 @@ export class SettingsStoreRepository {
    */
   clear(): Promise<void> {
     this.store.clear();
-    this.cache = null;
-    this.validateAndRepair();
+    // After clear, settings are reset to defaults
+    const defaults = AppSettingsSchema.parse({});
+    this.store.set('settings', defaults);
+    this.cache = defaults;
     logger.warn('All settings cleared and reset to defaults');
     return Promise.resolve();
   }
