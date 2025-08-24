@@ -9,47 +9,24 @@ import { withContext } from './context';
 import { logInfo, logWarn, logError, logDebug } from './logger';
 
 /**
+ * Log function mappings for each level
+ */
+const logFunctions = {
+  info: logInfo,
+  warn: logWarn,
+  error: (msg: string, meta?: object) => logError(msg, undefined, meta),
+  debug: logDebug,
+} as const;
+
+/**
  * Setup IPC handlers for logging from renderer process
  */
 export function setupLoggingIPC(): void {
-  // Info level logging
-  ipcMain.on('log:info', (_event: IpcMainEvent, payload: LogMessage) => {
-    const fn = () => logInfo(payload.msg, payload.meta);
-    if (payload.cid) {
-      withContext(fn, { cid: payload.cid });
-    } else {
-      withContext(fn);
-    }
-  });
-
-  // Warning level logging
-  ipcMain.on('log:warn', (_event: IpcMainEvent, payload: LogMessage) => {
-    const fn = () => logWarn(payload.msg, payload.meta);
-    if (payload.cid) {
-      withContext(fn, { cid: payload.cid });
-    } else {
-      withContext(fn);
-    }
-  });
-
-  // Error level logging
-  ipcMain.on('log:error', (_event: IpcMainEvent, payload: LogMessage) => {
-    const fn = () => logError(payload.msg, undefined, payload.meta);
-    if (payload.cid) {
-      withContext(fn, { cid: payload.cid });
-    } else {
-      withContext(fn);
-    }
-  });
-
-  // Debug level logging
-  ipcMain.on('log:debug', (_event: IpcMainEvent, payload: LogMessage) => {
-    const fn = () => logDebug(payload.msg, payload.meta);
-    if (payload.cid) {
-      withContext(fn, { cid: payload.cid });
-    } else {
-      withContext(fn);
-    }
+  Object.entries(logFunctions).forEach(([level, logFn]) => {
+    ipcMain.on(`log:${level}`, (_event: IpcMainEvent, payload: LogMessage) => {
+      const fn = () => logFn(payload.msg, payload.meta);
+      payload.cid ? withContext(fn, { cid: payload.cid }) : withContext(fn);
+    });
   });
 }
 
@@ -57,8 +34,5 @@ export function setupLoggingIPC(): void {
  * Cleanup IPC handlers
  */
 export function cleanupLoggingIPC(): void {
-  ipcMain.removeAllListeners('log:info');
-  ipcMain.removeAllListeners('log:warn');
-  ipcMain.removeAllListeners('log:error');
-  ipcMain.removeAllListeners('log:debug');
+  Object.keys(logFunctions).forEach((level) => ipcMain.removeAllListeners(`log:${level}`));
 }
