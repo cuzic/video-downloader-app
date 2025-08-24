@@ -223,6 +223,10 @@ describe('Performance Utilities', () => {
       reporter.report('task1', 12); // Delta < 5, should not report
       reporter.report('task1', 15); // Delta >= 5, should report
 
+      // The ProgressReporter implementation tracks lastProgress globally, not per-task
+      // So it only sends when the delta from the last sent progress is >= 5
+      // First call: 10 (sent), Second call: 11 (delta=1, not sent), 
+      // Third call: 12 (delta=2, not sent), Fourth call: 15 (delta=5, sent)
       expect(mockWindow.webContents.send).toHaveBeenCalledTimes(2);
     });
 
@@ -320,17 +324,17 @@ describe('Performance Utilities', () => {
       expect(elapsed).toBeGreaterThanOrEqual(90); // Should wait ~100ms
     });
 
-    it('should reset to max tokens', () => {
+    it('should reset to max tokens', async () => {
       const limiter = new RateLimiter(10, 1);
 
       // Use some tokens
-      limiter.acquire(5);
+      await limiter.acquire(5);
       
       // Reset
       limiter.reset();
       
       // Should have max tokens again
-      expect(limiter.acquire(10)).resolves.toBeUndefined();
+      await expect(limiter.acquire(10)).resolves.toBeUndefined();
     });
   });
 });
