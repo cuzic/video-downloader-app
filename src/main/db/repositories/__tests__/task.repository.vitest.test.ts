@@ -60,7 +60,7 @@ describe('TaskRepository', () => {
       const taskId = await taskRepo.create(spec);
 
       expect(taskId).toBe('test-id-123');
-      expect(mockAuditLogRepo.logDownloadEvent).toHaveBeenCalledWith(
+      expect((mockAuditLogRepo.logDownloadEvent as vi.Mock)).toHaveBeenCalledWith(
         'test-id-123',
         'task_created',
         { url: spec.url }
@@ -93,7 +93,7 @@ describe('TaskRepository', () => {
     it('should pause an active task', async () => {
       await taskRepo.pause('test-id-123');
 
-      expect(mockAuditLogRepo.logDownloadEvent).toHaveBeenCalledWith(
+      expect((mockAuditLogRepo.logDownloadEvent as vi.Mock)).toHaveBeenCalledWith(
         'test-id-123',
         'task_paused',
         undefined
@@ -105,7 +105,7 @@ describe('TaskRepository', () => {
     it('should resume a paused task', async () => {
       await taskRepo.resume('test-id-123');
 
-      expect(mockAuditLogRepo.logDownloadEvent).toHaveBeenCalledWith(
+      expect((mockAuditLogRepo.logDownloadEvent as vi.Mock)).toHaveBeenCalledWith(
         'test-id-123',
         'task_resumed',
         undefined
@@ -117,7 +117,7 @@ describe('TaskRepository', () => {
     it('should cancel a task', async () => {
       await taskRepo.cancel('test-id-123');
 
-      expect(mockAuditLogRepo.logDownloadEvent).toHaveBeenCalledWith(
+      expect((mockAuditLogRepo.logDownloadEvent as vi.Mock)).toHaveBeenCalledWith(
         'test-id-123',
         'task_canceled',
         undefined
@@ -129,7 +129,7 @@ describe('TaskRepository', () => {
     it('should retry a failed task', async () => {
       await taskRepo.retry('test-id-123');
 
-      expect(mockAuditLogRepo.logDownloadEvent).toHaveBeenCalledWith(
+      expect((mockAuditLogRepo.logDownloadEvent as vi.Mock)).toHaveBeenCalledWith(
         'test-id-123',
         'task_retried',
         undefined

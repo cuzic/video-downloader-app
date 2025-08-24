@@ -9,7 +9,7 @@ import type { SystemInfoResponse, SystemPathsResponse } from '@/shared/types/ipc
 export const systemHandlers = [
   {
     channel: SYSTEM_CHANNELS.GET_PATH,
-    handler: wrapHandler(async (_event: IpcMainInvokeEvent, name: 'home' | 'downloads' | 'documents' | 'videos'): Promise<string> => {
+    handler: wrapHandler((_event: IpcMainInvokeEvent, name: 'home' | 'downloads' | 'documents' | 'videos'): string => {
       validateRequired({ name }, ['name']);
       
       switch (name) {
@@ -28,7 +28,7 @@ export const systemHandlers = [
   },
   {
     channel: SYSTEM_CHANNELS.GET_PATHS,
-    handler: wrapHandler(async (_event: IpcMainInvokeEvent): Promise<SystemPathsResponse> => {
+    handler: wrapHandler((_event: IpcMainInvokeEvent): SystemPathsResponse => {
       return {
         home: app.getPath('home'),
         downloads: app.getPath('downloads'),
@@ -87,13 +87,13 @@ export const systemHandlers = [
   },
   {
     channel: SYSTEM_CHANNELS.GET_VERSION,
-    handler: wrapHandler(async (_event: IpcMainInvokeEvent): Promise<string> => {
+    handler: wrapHandler((_event: IpcMainInvokeEvent): string => {
       return app.getVersion();
     }),
   },
   {
     channel: SYSTEM_CHANNELS.GET_INFO,
-    handler: wrapHandler(async (_event: IpcMainInvokeEvent): Promise<SystemInfoResponse> => {
+    handler: wrapHandler((_event: IpcMainInvokeEvent): SystemInfoResponse => {
       return {
         version: app.getVersion(),
         platform: process.platform,
@@ -104,7 +104,7 @@ export const systemHandlers = [
   },
   {
     channel: SYSTEM_CHANNELS.CHECK_FILE_EXISTS,
-    handler: wrapHandler(async (_event: IpcMainInvokeEvent, filePath: string): Promise<boolean> => {
+    handler: wrapHandler((_event: IpcMainInvokeEvent, filePath: string): boolean => {
       validateRequired({ filePath }, ['filePath']);
       
       // Ensure absolute path
@@ -172,14 +172,14 @@ export const systemHandlers = [
   },
   {
     channel: SYSTEM_CHANNELS.GET_FILE_INFO,
-    handler: wrapHandler(async (_event: IpcMainInvokeEvent, filePath: string): Promise<{
+    handler: wrapHandler((_event: IpcMainInvokeEvent, filePath: string): {
       exists: boolean;
       size?: number;
       isDirectory?: boolean;
       isFile?: boolean;
       createdAt?: string;
       modifiedAt?: string;
-    }> => {
+    } => {
       validateRequired({ filePath }, ['filePath']);
       
       // Ensure absolute path

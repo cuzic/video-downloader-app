@@ -1,5 +1,5 @@
 import type { BrowserWindow} from 'electron';
-import { dialog } from 'electron';
+import { dialog, shell } from 'electron';
 
 /**
  * DRM Detection System
@@ -195,7 +195,6 @@ export class DRMDetector {
     
     if (result.response === 1) {
       // Open information about DRM
-      const { shell } = require('electron');
       void shell.openExternal('https://en.wikipedia.org/wiki/Digital_rights_management');
     }
   }
