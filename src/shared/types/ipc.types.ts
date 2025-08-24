@@ -1,9 +1,4 @@
-import type { 
-  DownloadSpec, 
-  DownloadProgress, 
-  DownloadTaskDTO,
-  AppSettings,
-} from './index';
+import type { DownloadSpec, DownloadProgress, DownloadTaskDTO, AppSettings } from './index';
 
 // Event callback types
 export type EventCallback<T> = (data: T) => void;
@@ -15,24 +10,24 @@ export enum ErrorCode {
   NETWORK_ERROR = 'E1000',
   NETWORK_TIMEOUT = 'E1001',
   NETWORK_OFFLINE = 'E1002',
-  
+
   // File system errors (2xxx)
   FILE_NOT_FOUND = 'E2000',
   FILE_ACCESS_DENIED = 'E2001',
   DISK_FULL = 'E2002',
   PATH_INVALID = 'E2003',
-  
+
   // Validation errors (3xxx)
   INVALID_URL = 'E3000',
   INVALID_PATH = 'E3001',
   INVALID_FORMAT = 'E3002',
-  
+
   // Application errors (4xxx)
   INVALID_ARGUMENT = 'E4000',
   OPERATION_FAILED = 'E4001',
   NOT_IMPLEMENTED = 'E4002',
   UNAUTHORIZED = 'E4003',
-  
+
   // Download errors (5xxx)
   DOWNLOAD_FAILED = 'E5000',
   DOWNLOAD_CANCELED = 'E5001',
@@ -120,7 +115,7 @@ export interface ElectronAPI {
     onCompleted(callback: EventCallback<DownloadTaskDTO>): UnsubscribeFn;
     onError(callback: EventCallback<{ taskId: string; error: IPCError }>): UnsubscribeFn;
   };
-  
+
   // Detection system
   detection: {
     enable(): Promise<void>;
@@ -132,7 +127,7 @@ export interface ElectronAPI {
     onVideoFound(callback: EventCallback<Detection>): UnsubscribeFn;
     onVideoSkipped(callback: EventCallback<{ url: string; reason: string }>): UnsubscribeFn;
   };
-  
+
   // Settings management
   settings: {
     getAll(): Promise<AppSettings>;
@@ -141,7 +136,7 @@ export interface ElectronAPI {
     reset(key?: string): Promise<void>;
     onSettingsChanged(callback: EventCallback<{ key: string; value: any }>): UnsubscribeFn;
   };
-  
+
   // System operations
   system: {
     revealInFolder(path: string): Promise<void>;
@@ -162,7 +157,7 @@ export interface ElectronAPI {
       readText(): Promise<string>;
     };
   };
-  
+
   // Window controls
   window: {
     minimize(): Promise<void>;
@@ -173,7 +168,7 @@ export interface ElectronAPI {
     onMaximized(callback: EventCallback<void>): UnsubscribeFn;
     onUnmaximized(callback: EventCallback<void>): UnsubscribeFn;
   };
-  
+
   // App lifecycle
   app: {
     getVersion(): Promise<string>;

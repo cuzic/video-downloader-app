@@ -84,7 +84,7 @@ describe('SecretsMigration', () => {
     const Store = (await import('electron-store')).default as any;
     Store.mockImplementation(() => mockStore);
 
-    const { SecretsService } = await import('../secrets.service') as any;
+    const { SecretsService } = (await import('../secrets.service')) as any;
     SecretsService.mockImplementation(() => mockSecretsService);
 
     migration = new SecretsMigration();

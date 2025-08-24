@@ -37,6 +37,60 @@ pnpm run build
 - **Testing**: Vitest for unit tests, Playwright for E2E tests
 - **Package Manager**: pnpm
 
+## Testing
+
+### Running Tests
+
+```bash
+# Run all tests
+pnpm test
+
+# Run tests with coverage
+pnpm run test:coverage
+
+# Run tests in watch mode (development)
+pnpm run test:watch
+
+# Run E2E tests
+pnpm run test:e2e
+```
+
+### Test Structure
+
+- **Unit tests**: `src/**/*.vitest.test.ts` - Tests for individual functions/classes
+- **Integration tests**: Repository tests, IPC handler tests
+- **E2E tests**: `tests/e2e/**/*.spec.ts` - End-to-end browser automation tests
+
+### Test Environment Setup
+
+The project uses an in-memory SQLite database for tests with proper schema initialization:
+
+1. **Database**: Automatically creates all tables in `:memory:` for each test run
+2. **Mocks**: Electron APIs are mocked in `src/main/__mocks__/electron.ts`
+3. **Environment**: `NODE_ENV=test` is set automatically during test execution
+
+### Local Development Testing
+
+For local development, ensure these system dependencies are available:
+
+**Linux (Ubuntu/Debian)**:
+```bash
+sudo apt-get update
+sudo apt-get install -y libsecret-1-dev
+```
+
+**macOS**:
+No additional dependencies required.
+
+**Windows**:
+No additional dependencies required.
+
+### Known Test Issues
+
+- StatisticsRepository tests are temporarily skipped due to SQLite boolean binding issues
+- Some IPC handler validation tests may show generic error messages instead of specific validation errors
+- Keytar tests require system keyring access and may fail in headless CI environments
+
 ## Important Notes
 
 ### Environment Variables

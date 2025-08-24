@@ -2,7 +2,7 @@
 // IPC通信での入力検証用
 
 import { z } from 'zod';
-import { 
+import {
   ErrorCode,
   MediaType,
   DownloadStatus,
@@ -12,25 +12,38 @@ import {
   DuplicateAction,
   Theme,
   LogLevel,
-  NotificationType
+  NotificationType,
 } from './interfaces';
 
 // ============================================
 // 基本型のスキーマ
 // ============================================
 
-export const ISO8601Schema = z.string().regex(
-  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/,
-  'Invalid ISO8601 format'
-);
+export const ISO8601Schema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/, 'Invalid ISO8601 format');
 
 export const BytesSchema = z.number().int().min(0);
 export const BpsSchema = z.number().min(0);
 
 export const ErrorCodeSchema = z.nativeEnum(ErrorCode);
 export const MediaTypeSchema = z.enum(['hls', 'dash', 'file']);
-export const DownloadStatusSchema = z.enum(['queued', 'running', 'paused', 'completed', 'error', 'canceled']);
-export const SkipReasonSchema = z.enum(['drm', '403', 'cors', 'mime-mismatch', 'widevine-hint', 'live']);
+export const DownloadStatusSchema = z.enum([
+  'queued',
+  'running',
+  'paused',
+  'completed',
+  'error',
+  'canceled',
+]);
+export const SkipReasonSchema = z.enum([
+  'drm',
+  '403',
+  'cors',
+  'mime-mismatch',
+  'widevine-hint',
+  'live',
+]);
 export const BackoffStrategySchema = z.enum(['exponential', 'fixed']);
 export const QualityPreferenceSchema = z.enum(['highest', 'lowest', 'balanced', 'custom']);
 export const DuplicateActionSchema = z.enum(['ask', 'skip', 'rename', 'overwrite']);
@@ -56,7 +69,10 @@ export const SerializedErrorSchema = z.object({
 
 export const VideoVariantSchema = z.object({
   bandwidth: z.number().optional(),
-  resolution: z.string().regex(/^\d+x\d+$/).optional(),
+  resolution: z
+    .string()
+    .regex(/^\d+x\d+$/)
+    .optional(),
   codecs: z.string().optional(),
   frameRate: z.number().positive().optional(),
   label: z.string().optional(),
@@ -103,8 +119,14 @@ export const RetryPolicySchema = z.object({
 export const CustomQualityRuleSchema = z.object({
   minBandwidth: z.number().positive().optional(),
   maxBandwidth: z.number().positive().optional(),
-  minResolution: z.string().regex(/^\d+x\d+$/).optional(),
-  maxResolution: z.string().regex(/^\d+x\d+$/).optional(),
+  minResolution: z
+    .string()
+    .regex(/^\d+x\d+$/)
+    .optional(),
+  maxResolution: z
+    .string()
+    .regex(/^\d+x\d+$/)
+    .optional(),
   preferFramerate: z.number().positive().optional(),
 });
 
@@ -192,28 +214,32 @@ export const DuplicateRenameRuleSchema = z.object({
   start: z.number().int().min(0).default(1).optional(),
 });
 
-export const ProxyConfigSchema = z.object({
-  enabled: z.boolean(),
-  type: z.enum(['http', 'https', 'socks4', 'socks5', 'system', 'pac']),
-  host: z.string().optional(),
-  port: z.number().int().min(1).max(65535).optional(),
-  pacUrl: z.string().url().optional(),
-  auth: z.object({
-    username: z.string(),
-    password: z.string(),
-  }).optional(),
-  bypassList: z.array(z.string()).optional(),
-}).refine(
-  (data) => {
-    if (!data.enabled) return true;
-    if (data.type === 'pac') return !!data.pacUrl;
-    if (data.type === 'system') return true;
-    return !!data.host && !!data.port;
-  },
-  {
-    message: 'Invalid proxy configuration',
-  }
-);
+export const ProxyConfigSchema = z
+  .object({
+    enabled: z.boolean(),
+    type: z.enum(['http', 'https', 'socks4', 'socks5', 'system', 'pac']),
+    host: z.string().optional(),
+    port: z.number().int().min(1).max(65535).optional(),
+    pacUrl: z.string().url().optional(),
+    auth: z
+      .object({
+        username: z.string(),
+        password: z.string(),
+      })
+      .optional(),
+    bypassList: z.array(z.string()).optional(),
+  })
+  .refine(
+    (data) => {
+      if (!data.enabled) return true;
+      if (data.type === 'pac') return !!data.pacUrl;
+      if (data.type === 'system') return true;
+      return !!data.host && !!data.port;
+    },
+    {
+      message: 'Invalid proxy configuration',
+    }
+  );
 
 export const AppSettingsSchema = z.object({
   // 基本設定
@@ -221,41 +247,41 @@ export const AppSettingsSchema = z.object({
   maxConcurrentDownloads: z.number().int().min(1).max(10),
   autoStartDownload: z.boolean(),
   notificationEnabled: z.boolean(),
-  
+
   // FFmpeg設定
   ffmpegPath: z.string().min(1),
   ffmpegArgs: z.array(z.string()).optional(),
-  
+
   // プロキシ設定
   proxy: ProxyConfigSchema.optional(),
-  
+
   // UI設定
   theme: ThemeSchema,
   language: z.string().min(2).max(5),
   windowConfig: WindowConfigSchema.optional(),
-  
+
   // 詳細設定
   userAgent: z.string().optional(),
   downloadQualityPreference: QualityPreferenceSchema,
   qualityRule: CustomQualityRuleSchema.optional(),
   duplicateAction: DuplicateActionSchema,
   duplicateRenameRule: DuplicateRenameRuleSchema.optional(),
-  
+
   // 通知設定
   completedNotification: z.object({
     enabled: z.boolean(),
     autoOpenFolder: z.boolean(),
   }),
-  
+
   // 自動更新
   autoUpdate: z.object({
     enabled: z.boolean(),
     checkIntervalHours: z.number().int().min(1).max(168),
   }),
-  
+
   // 検出設定
   detection: DetectionConfigSchema,
-  
+
   // リトライ設定
   downloadRetry: RetryPolicySchema,
   segmentRetry: z.object({
@@ -308,10 +334,12 @@ export const NotificationMessageSchema = z.object({
   title: z.string().min(1).max(100),
   message: z.string().max(500).optional(),
   durationMs: z.number().int().min(1000).max(30000).optional(),
-  action: z.object({
-    label: z.string().min(1).max(50),
-    command: NotificationCommandSchema,
-  }).optional(),
+  action: z
+    .object({
+      label: z.string().min(1).max(50),
+      command: NotificationCommandSchema,
+    })
+    .optional(),
 });
 
 // ============================================
@@ -365,12 +393,14 @@ export const NamingTokenSchema = z.object({
 export const NamingRuleSchema = z.object({
   id: z.string(),
   sitePattern: z.string().min(1),
-  tokens: z.array(z.object({
-    name: z.string().min(1),
-    selector: z.string().optional(),
-    regex: z.string().optional(),
-    fallback: z.string().optional(),
-  })),
+  tokens: z.array(
+    z.object({
+      name: z.string().min(1),
+      selector: z.string().optional(),
+      regex: z.string().optional(),
+      fallback: z.string().optional(),
+    })
+  ),
   enabled: z.boolean(),
 });
 
@@ -416,10 +446,7 @@ export const NamingPreviewRequestSchema = z.object({
 /**
  * IPCリクエストのバリデーション
  */
-export function validateRequest<T>(
-  schema: z.ZodType<T>,
-  data: unknown
-): T {
+export function validateRequest<T>(schema: z.ZodType<T>, data: unknown): T {
   const result = schema.safeParse(data);
   if (!result.success) {
     const error = new Error('Validation failed');
@@ -433,10 +460,7 @@ export function validateRequest<T>(
 /**
  * 部分的なバリデーション（設定更新用）
  */
-export function validatePartial<T>(
-  schema: z.ZodType<T>,
-  data: unknown
-): Partial<T> {
+export function validatePartial<T>(schema: z.ZodType<T>, data: unknown): Partial<T> {
   const partialSchema = schema.partial();
   return validateRequest(partialSchema, data);
 }

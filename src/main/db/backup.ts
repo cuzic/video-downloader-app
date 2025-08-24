@@ -27,14 +27,14 @@ export class DatabaseBackup {
     this.encryptionKey = encryptionKey || this.getOrCreateEncryptionKey();
     this.ensureBackupDirectory();
   }
-  
+
   private getOrCreateEncryptionKey(): string {
     const keyPath = path.join(app.getPath('userData'), '.backup-key');
-    
+
     if (fs.existsSync(keyPath)) {
       return fs.readFileSync(keyPath, 'utf-8');
     }
-    
+
     // Generate new key
     const key = crypto.randomBytes(32).toString('base64');
     fs.writeFileSync(keyPath, key, { mode: 0o600 }); // Restrict file permissions
@@ -46,36 +46,36 @@ export class DatabaseBackup {
       fs.mkdirSync(this.backupDir, { recursive: true });
     }
   }
-  
+
   private encrypt(data: Buffer): Buffer {
     if (!this.encryptionKey) throw new Error('Encryption key not set');
-    
+
     const salt = crypto.randomBytes(SALT_LENGTH);
     const key = crypto.pbkdf2Sync(this.encryptionKey, salt, ITERATIONS, 32, 'sha256');
     const iv = crypto.randomBytes(IV_LENGTH);
-    
+
     const cipher = crypto.createCipheriv(ENCRYPTION_ALGORITHM, key, iv);
     const encrypted = Buffer.concat([cipher.update(data), cipher.final()]);
     const tag = cipher.getAuthTag();
-    
+
     // Combine salt, iv, tag, and encrypted data
     return Buffer.concat([salt, iv, tag, encrypted]);
   }
-  
+
   private decrypt(encryptedData: Buffer): Buffer {
     if (!this.encryptionKey) throw new Error('Encryption key not set');
-    
+
     // Extract components
     const salt = encryptedData.slice(0, SALT_LENGTH);
     const iv = encryptedData.slice(SALT_LENGTH, SALT_LENGTH + IV_LENGTH);
     const tag = encryptedData.slice(SALT_LENGTH + IV_LENGTH, SALT_LENGTH + IV_LENGTH + TAG_LENGTH);
     const encrypted = encryptedData.slice(SALT_LENGTH + IV_LENGTH + TAG_LENGTH);
-    
+
     const key = crypto.pbkdf2Sync(this.encryptionKey, salt, ITERATIONS, 32, 'sha256');
-    
+
     const decipher = crypto.createDecipheriv(ENCRYPTION_ALGORITHM, key, iv);
     decipher.setAuthTag(tag);
-    
+
     return Buffer.concat([decipher.update(encrypted), decipher.final()]);
   }
 
@@ -87,7 +87,7 @@ export class DatabaseBackup {
    */
   async createBackup(compress = true, encrypt = true): Promise<string> {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const extension = encrypt ? '.enc' : (compress ? '.gz' : '.db');
+    const extension = encrypt ? '.enc' : compress ? '.gz' : '.db';
     const backupName = `backup-${timestamp}${extension}`;
     const backupPath = path.join(this.backupDir, backupName);
 
@@ -96,27 +96,29 @@ export class DatabaseBackup {
       const sourceDb = new Database(this.dbPath, { readonly: true });
 
       let backupData: Buffer;
-      
+
       // Export database to buffer
       const data = await this.exportToBuffer(sourceDb);
-      
+
       // Compress if requested
       if (compress) {
         backupData = await gzipAsync(data);
       } else {
         backupData = data;
       }
-      
+
       // Encrypt if requested
       if (encrypt) {
         backupData = this.encrypt(backupData);
       }
-      
+
       // Write to file
       fs.writeFileSync(backupPath, backupData);
       sourceDb.close();
-      
-      console.log(`✅ Backup created: ${backupPath} (compressed: ${compress}, encrypted: ${encrypt})`);
+
+      console.log(
+        `✅ Backup created: ${backupPath} (compressed: ${compress}, encrypted: ${encrypt})`
+      );
       return backupPath;
     } catch (error) {
       console.error('❌ Backup failed:', error);
@@ -131,7 +133,7 @@ export class DatabaseBackup {
    */
   async restoreBackup(backupPath: string, targetPath?: string): Promise<void> {
     const target = targetPath || this.dbPath;
-    
+
     try {
       // Check if backup exists
       if (!fs.existsSync(backupPath)) {
@@ -146,20 +148,21 @@ export class DatabaseBackup {
       }
 
       let data: Buffer = fs.readFileSync(backupPath);
-      
+
       // Decrypt if encrypted
       if (backupPath.endsWith('.enc')) {
         data = this.decrypt(data);
-        
+
         // Check if decrypted data is compressed
-        if (data[0] === 0x1f && data[1] === 0x8b) { // Gzip magic numbers
+        if (data[0] === 0x1f && data[1] === 0x8b) {
+          // Gzip magic numbers
           data = await gunzipAsync(data);
         }
       } else if (backupPath.endsWith('.gz')) {
         // Just decompress
         data = await gunzipAsync(data);
       }
-      
+
       // Write restored data
       fs.writeFileSync(target, data);
 
@@ -187,13 +190,16 @@ export class DatabaseBackup {
     encrypted: boolean;
   }> {
     const files = fs.readdirSync(this.backupDir);
-    
+
     return files
-      .filter(f => f.startsWith('backup-') && (f.endsWith('.db') || f.endsWith('.gz') || f.endsWith('.enc')))
-      .map(name => {
+      .filter(
+        (f) =>
+          f.startsWith('backup-') && (f.endsWith('.db') || f.endsWith('.gz') || f.endsWith('.enc'))
+      )
+      .map((name) => {
         const filePath = path.join(this.backupDir, name);
         const stats = fs.statSync(filePath);
-        
+
         return {
           name,
           path: filePath,
@@ -216,7 +222,7 @@ export class DatabaseBackup {
 
     if (backups.length > keepCount) {
       const toDelete = backups.slice(keepCount);
-      
+
       for (const backup of toDelete) {
         try {
           fs.unlinkSync(backup.path);
@@ -237,13 +243,16 @@ export class DatabaseBackup {
    */
   async createAutoBackup(intervalHours = 24): Promise<string | null> {
     const backups = this.listBackups();
-    
+
     if (backups.length > 0) {
       const lastBackup = backups[0];
-      const hoursSinceLastBackup = (Date.now() - (lastBackup?.created.getTime() || 0)) / (1000 * 60 * 60);
-      
+      const hoursSinceLastBackup =
+        (Date.now() - (lastBackup?.created.getTime() || 0)) / (1000 * 60 * 60);
+
       if (hoursSinceLastBackup < intervalHours) {
-        console.log(`⏰ Skipping auto-backup (last backup ${hoursSinceLastBackup.toFixed(1)}h ago)`);
+        console.log(
+          `⏰ Skipping auto-backup (last backup ${hoursSinceLastBackup.toFixed(1)}h ago)`
+        );
         return null;
       }
     }
@@ -256,7 +265,7 @@ export class DatabaseBackup {
    */
   async exportToJson(outputPath?: string): Promise<string> {
     const exportPath = outputPath || path.join(this.backupDir, `export-${Date.now()}.json`);
-    
+
     try {
       const db = new Database(this.dbPath, { readonly: true });
       const tables = this.getTableNames(db);
@@ -282,7 +291,7 @@ export class DatabaseBackup {
    */
   async importFromJson(jsonPath: string, targetPath?: string): Promise<void> {
     const target = targetPath || this.dbPath;
-    
+
     try {
       const jsonData = JSON.parse(fs.readFileSync(jsonPath, 'utf-8'));
       const db = new Database(target);
@@ -303,7 +312,7 @@ export class DatabaseBackup {
           );
 
           for (const row of rows) {
-            stmt.run(...columns.map(col => row[col]));
+            stmt.run(...columns.map((col) => row[col]));
           }
         }
       })();
@@ -334,7 +343,7 @@ export class DatabaseBackup {
       const db = new Database(this.dbPath, { readonly: true });
       const result = db.pragma('integrity_check');
       db.close();
-      
+
       return (result as any)[0]?.integrity_check === 'ok';
     } catch (error) {
       console.error('❌ Integrity check failed:', error);
@@ -354,13 +363,12 @@ export class DatabaseBackup {
     return Buffer.from(JSON.stringify(data));
   }
 
-
   private getTableNames(db: any): string[] {
-    const tables = db.prepare(
-      `SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'`
-    ).all() as Array<{ name: string }>;
-    
-    return tables.map(t => t.name);
+    const tables = db
+      .prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'`)
+      .all() as Array<{ name: string }>;
+
+    return tables.map((t) => t.name);
   }
 }
 

@@ -44,7 +44,9 @@ describe('Performance Utilities', () => {
 
     it('should preserve context', () => {
       const context = { value: 42 };
-      const fn = vi.fn(function(this: any) { return this.value; });
+      const fn = vi.fn(function (this: any) {
+        return this.value;
+      });
       const throttled = throttle(fn, 100);
 
       throttled.call(context);
@@ -80,10 +82,10 @@ describe('Performance Utilities', () => {
 
       debounced('call1');
       vi.advanceTimersByTime(50);
-      
+
       debounced('call2');
       vi.advanceTimersByTime(50);
-      
+
       // Still not called because timer was reset
       expect(fn).not.toHaveBeenCalled();
 
@@ -106,7 +108,7 @@ describe('Performance Utilities', () => {
 
       batcher.add('event1');
       batcher.add('event2');
-      
+
       // Not flushed yet
       expect(onFlush).not.toHaveBeenCalled();
 
@@ -225,7 +227,7 @@ describe('Performance Utilities', () => {
 
       // The ProgressReporter implementation tracks lastProgress globally, not per-task
       // So it only sends when the delta from the last sent progress is >= 5
-      // First call: 10 (sent), Second call: 11 (delta=1, not sent), 
+      // First call: 10 (sent), Second call: 11 (delta=1, not sent),
       // Third call: 12 (delta=2, not sent), Fourth call: 15 (delta=5, sent)
       expect(mockWindow.webContents.send).toHaveBeenCalledTimes(2);
     });
@@ -277,50 +279,50 @@ describe('Performance Utilities', () => {
 
       // Use up all tokens
       await limiter.acquire(5);
-      
+
       // This should wait for refill
       const promise = limiter.acquire(1);
-      
+
       // Advance time to refill 1 token
       vi.advanceTimersByTime(100);
-      
+
       await promise;
-      
+
       // Should have waited approximately 100ms
       expect(vi.getTimerCount()).toBe(0);
     });
 
     it('should refill tokens over time', async () => {
       vi.useRealTimers(); // Use real timers for this test
-      
+
       const limiter = new RateLimiter(10, 100); // 10 tokens, 100 tokens/sec
 
       // Use some tokens
       await limiter.acquire(5);
-      
+
       // Wait for refill
-      await new Promise(resolve => setTimeout(resolve, 60));
-      
+      await new Promise((resolve) => setTimeout(resolve, 60));
+
       // Should be able to acquire more tokens now
       await expect(limiter.acquire(5)).resolves.toBeUndefined();
     });
 
     it('should not exceed max tokens', async () => {
       vi.useRealTimers(); // Use real timers for this test
-      
+
       const limiter = new RateLimiter(5, 10); // 5 tokens max
 
       // Wait for potential over-refill
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       // Should still only have max tokens
       await expect(limiter.acquire(5)).resolves.toBeUndefined();
-      
+
       // This should require waiting
       const startTime = Date.now();
       await limiter.acquire(1);
       const elapsed = Date.now() - startTime;
-      
+
       expect(elapsed).toBeGreaterThanOrEqual(90); // Should wait ~100ms
     });
 
@@ -329,10 +331,10 @@ describe('Performance Utilities', () => {
 
       // Use some tokens
       await limiter.acquire(5);
-      
+
       // Reset
       limiter.reset();
-      
+
       // Should have max tokens again
       await expect(limiter.acquire(10)).resolves.toBeUndefined();
     });

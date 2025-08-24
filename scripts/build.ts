@@ -27,57 +27,72 @@ for (const dir of distDirs) {
 
 // Build main process with esbuild
 console.log('\n📦 Building main process...');
-await execa('pnpm', [
-  'exec', 'esbuild', 
-  'src/main/index.ts', 
-  '--bundle',
-  '--outdir=dist/main', 
-  '--platform=node',
-  '--target=node20',
-  '--format=esm',
-  '--minify',
-  '--sourcemap=external',
-  '--external:electron',
-  '--external:better-sqlite3',
-  '--external:keytar',
-  '--external:electron-store',
-  '--external:winston',
-  '--external:winston-daily-rotate-file',
-  '--external:drizzle-orm'
-], { cwd: rootDir });
+await execa(
+  'pnpm',
+  [
+    'exec',
+    'esbuild',
+    'src/main/index.ts',
+    '--bundle',
+    '--outdir=dist/main',
+    '--platform=node',
+    '--target=node20',
+    '--format=esm',
+    '--minify',
+    '--sourcemap=external',
+    '--external:electron',
+    '--external:better-sqlite3',
+    '--external:keytar',
+    '--external:electron-store',
+    '--external:winston',
+    '--external:winston-daily-rotate-file',
+    '--external:drizzle-orm',
+  ],
+  { cwd: rootDir }
+);
 console.log('  ✓ Main process built');
 
 // Build preload script with esbuild
 console.log('\n📦 Building preload script...');
-await execa('pnpm', [
-  'exec', 'esbuild',
-  'src/preload/index.ts',
-  '--bundle',
-  '--outdir=dist/preload',
-  '--platform=node',
-  '--target=node20',
-  '--format=esm',
-  '--minify',
-  '--sourcemap=external'
-], { cwd: rootDir });
+await execa(
+  'pnpm',
+  [
+    'exec',
+    'esbuild',
+    'src/preload/index.ts',
+    '--bundle',
+    '--outdir=dist/preload',
+    '--platform=node',
+    '--target=node20',
+    '--format=esm',
+    '--minify',
+    '--sourcemap=external',
+  ],
+  { cwd: rootDir }
+);
 console.log('  ✓ Preload script built');
 
 // Build renderer process with esbuild instead of Vite
 console.log('\n📦 Building renderer process...');
-await execa('pnpm', [
-  'exec', 'esbuild',
-  'src/renderer/main.tsx',
-  '--bundle',
-  '--outdir=dist/renderer',
-  '--platform=browser',
-  '--target=es2020',
-  '--format=esm',
-  '--minify',
-  '--sourcemap=external',
-  '--loader:.tsx=tsx',
-  '--loader:.ts=ts',
-  '--loader:.css=css'
-], { cwd: rootDir });
+await execa(
+  'pnpm',
+  [
+    'exec',
+    'esbuild',
+    'src/renderer/main.tsx',
+    '--bundle',
+    '--outdir=dist/renderer',
+    '--platform=browser',
+    '--target=es2020',
+    '--format=esm',
+    '--minify',
+    '--sourcemap=external',
+    '--loader:.tsx=tsx',
+    '--loader:.ts=ts',
+    '--loader:.css=css',
+  ],
+  { cwd: rootDir }
+);
 console.log('  ✓ Renderer process built');
 
 // Run TypeScript type checking

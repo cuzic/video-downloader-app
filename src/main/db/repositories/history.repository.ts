@@ -8,11 +8,7 @@ export class HistoryRepository {
     await db.insert(history).values(entry);
   }
 
-  async logTaskEvent(
-    taskId: string,
-    event: string,
-    details?: any
-  ): Promise<void> {
+  async logTaskEvent(taskId: string, event: string, details?: any): Promise<void> {
     await this.logEvent({
       taskId,
       event: event as any,
@@ -21,49 +17,44 @@ export class HistoryRepository {
   }
 
   async getTaskHistory(taskId: string): Promise<HistoryEntry[]> {
-    return db.select()
+    return db
+      .select()
       .from(history)
       .where(eq(history.taskId, taskId))
       .orderBy(history.createdAt) as Promise<HistoryEntry[]>;
   }
 
   async getRecentEvents(limit = 100): Promise<HistoryEntry[]> {
-    return db.select()
-      .from(history)
-      .orderBy(desc(history.createdAt))
-      .limit(limit);
+    return db.select().from(history).orderBy(desc(history.createdAt)).limit(limit);
   }
 
-  async getEventsByType(
-    event: string,
-    limit = 100
-  ): Promise<HistoryEntry[]> {
-    return db.select()
+  async getEventsByType(event: string, limit = 100): Promise<HistoryEntry[]> {
+    return db
+      .select()
       .from(history)
       .where(eq(history.event, event as any))
       .orderBy(desc(history.createdAt))
       .limit(limit);
   }
 
-  async getEventsInRange(
-    startTime: number,
-    endTime: number
-  ): Promise<HistoryEntry[]> {
-    return db.select()
+  async getEventsInRange(startTime: number, endTime: number): Promise<HistoryEntry[]> {
+    return db
+      .select()
       .from(history)
-      .where(and(
-        gte(history.createdAt, new Date(startTime * 1000)),
-        lte(history.createdAt, new Date(endTime * 1000))
-      ))
+      .where(
+        and(
+          gte(history.createdAt, new Date(startTime * 1000)),
+          lte(history.createdAt, new Date(endTime * 1000))
+        )
+      )
       .orderBy(history.createdAt);
   }
 
   async cleanup(daysOld = 90): Promise<number> {
-    const cutoff = new Date(Date.now() - (daysOld * 24 * 60 * 60 * 1000));
-    
-    const result = await db.delete(history)
-      .where(lte(history.createdAt, cutoff));
-    
+    const cutoff = new Date(Date.now() - daysOld * 24 * 60 * 60 * 1000);
+
+    const result = await db.delete(history).where(lte(history.createdAt, cutoff));
+
     return result.changes;
   }
 

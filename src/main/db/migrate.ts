@@ -7,32 +7,32 @@ import fs from 'fs';
 
 async function runMigrations() {
   console.log('🚀 Running database migrations...');
-  
+
   const dbPath = process.env.DB_PATH || path.join(process.cwd(), 'video-downloader.db');
   const migrationsFolder = path.join(process.cwd(), 'drizzle');
-  
+
   // Ensure database directory exists
   const dbDir = path.dirname(dbPath);
   if (!fs.existsSync(dbDir)) {
     fs.mkdirSync(dbDir, { recursive: true });
   }
-  
+
   try {
     // Create database connection
     const sqlite = new Database(dbPath);
     const db = drizzle(sqlite);
-    
+
     // Enable foreign keys
     sqlite.pragma('foreign_keys = ON');
-    
+
     // Run migrations
     console.log(`📁 Migrations folder: ${migrationsFolder}`);
     console.log(`💾 Database path: ${dbPath}`);
-    
+
     await migrate(db, { migrationsFolder });
-    
+
     console.log('✅ Migrations completed successfully!');
-    
+
     // Close connection
     sqlite.close();
   } catch (error) {

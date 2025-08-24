@@ -3,21 +3,11 @@
 import type { MediaType, VideoVariant } from './media.types';
 import type { ErrorCode, SerializedError } from './error.types';
 
-export type DownloadStatus = 
-  | 'queued' 
-  | 'running' 
-  | 'paused' 
-  | 'completed' 
-  | 'error' 
-  | 'canceled';
+export type DownloadStatus = 'queued' | 'running' | 'paused' | 'completed' | 'error' | 'canceled';
 
 export type BackoffStrategy = 'exponential' | 'fixed';
 
-export type QualityPreference = 
-  | 'highest' 
-  | 'lowest' 
-  | 'balanced' 
-  | 'custom';
+export type QualityPreference = 'highest' | 'lowest' | 'balanced' | 'custom';
 
 export interface RetryPolicy {
   maxAttempts: number;
@@ -30,7 +20,7 @@ export interface RetryPolicy {
 export interface CustomQualityRule {
   minBandwidth?: number;
   maxBandwidth?: number;
-  minResolution?: string;      // "1280x720"
+  minResolution?: string; // "1280x720"
   maxResolution?: string;
   preferFramerate?: number;
 }
@@ -49,21 +39,21 @@ export interface DownloadSpec {
 }
 
 export interface SegmentProgress {
-  total?: number;              // total segment count
-  downloaded: number;          // downloaded segment count
-  failed: number;              // failed segment count
-  currentIndex?: number;       // current segment index
-  targetDurationSec?: number;  // HLS target duration
-  mediaSequence?: number;      // HLS media sequence number
+  total?: number; // total segment count
+  downloaded: number; // downloaded segment count
+  failed: number; // failed segment count
+  currentIndex?: number; // current segment index
+  targetDurationSec?: number; // HLS target duration
+  mediaSequence?: number; // HLS media sequence number
 }
 
 export interface DownloadProgress {
-  percent?: number;            // progress 0-100
-  downloadedBytes: number;     // downloaded bytes
-  totalBytes?: number;         // total bytes
-  speedBps?: number;           // current speed (Bytes/sec)
-  etaMs?: number;              // estimated time remaining (ms)
-  segments?: SegmentProgress;  // segment progress
+  percent?: number; // progress 0-100
+  downloadedBytes: number; // downloaded bytes
+  totalBytes?: number; // total bytes
+  speedBps?: number; // current speed (Bytes/sec)
+  etaMs?: number; // estimated time remaining (ms)
+  segments?: SegmentProgress; // segment progress
 }
 
 export interface DownloadError {
@@ -93,7 +83,7 @@ export interface DownloadTaskDTO {
   status: DownloadStatus;
   progress: DownloadProgress;
   error?: DownloadError | SerializedError;
-  createdAt: string;          // ISO8601
+  createdAt: string; // ISO8601
   startedAt?: string;
   pausedAt?: string;
   completedAt?: string;

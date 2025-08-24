@@ -1,4 +1,4 @@
-import type { BrowserWindow} from 'electron';
+import type { BrowserWindow } from 'electron';
 import { dialog, shell } from 'electron';
 
 /**
@@ -19,7 +19,7 @@ export class DRMDetector {
     'tidal.com',
     'deezer.com',
   ]);
-  
+
   private static drmIndicators = [
     'widevine',
     'playready',
@@ -34,14 +34,14 @@ export class DRMDetector {
     'license.irdeto',
     'drm.technology',
   ];
-  
+
   private static detectionLog: Array<{
     timestamp: Date;
     url: string;
     type: string;
     blocked: boolean;
   }> = [];
-  
+
   /**
    * Check if URL is from a known DRM-protected service
    */
@@ -49,7 +49,7 @@ export class DRMDetector {
     try {
       const urlObj = new URL(url);
       const hostname = urlObj.hostname.toLowerCase();
-      
+
       // Check against blacklisted domains
       for (const domain of this.blacklistedDomains) {
         if (hostname.includes(domain)) {
@@ -57,14 +57,14 @@ export class DRMDetector {
           return true;
         }
       }
-      
+
       return false;
     } catch (error) {
       console.error('DRM domain check error:', error);
       return false;
     }
   }
-  
+
   /**
    * Inject DRM detection script into web contents
    */
@@ -164,14 +164,14 @@ export class DRMDetector {
         };
       })();
     `;
-    
+
     window.webContents.on('dom-ready', () => {
       window.webContents.executeJavaScript(detectionScript).catch((error: Error) => {
         console.error('Failed to inject DRM detection script:', error);
       });
     });
   }
-  
+
   /**
    * Handle DRM detection event
    */
@@ -182,7 +182,7 @@ export class DRMDetector {
     manifestUrl?: string;
   }): Promise<void> {
     this.logDetection(data.url, data.type, true);
-    
+
     // Show user notification
     const result = await dialog.showMessageBox({
       type: 'warning',
@@ -192,21 +192,21 @@ export class DRMDetector {
       buttons: ['OK', 'Learn More'],
       defaultId: 0,
     });
-    
+
     if (result.response === 1) {
       // Open information about DRM
       void shell.openExternal('https://en.wikipedia.org/wiki/Digital_rights_management');
     }
   }
-  
+
   /**
    * Check if content has DRM indicators
    */
   static hasDRMIndicators(content: string): boolean {
     const lowerContent = content.toLowerCase();
-    return this.drmIndicators.some(indicator => lowerContent.includes(indicator));
+    return this.drmIndicators.some((indicator) => lowerContent.includes(indicator));
   }
-  
+
   /**
    * Log DRM detection event
    */
@@ -217,45 +217,45 @@ export class DRMDetector {
       type,
       blocked,
     };
-    
+
     this.detectionLog.push(entry);
-    
+
     // Keep only last 100 entries
     if (this.detectionLog.length > 100) {
       this.detectionLog.shift();
     }
-    
+
     console.log('DRM Detection:', entry);
   }
-  
+
   /**
    * Get detection log
    */
   static getDetectionLog(): typeof DRMDetector.detectionLog {
     return [...this.detectionLog];
   }
-  
+
   /**
    * Clear detection log
    */
   static clearDetectionLog(): void {
     this.detectionLog = [];
   }
-  
+
   /**
    * Add domain to blacklist
    */
   static addBlacklistedDomain(domain: string): void {
     this.blacklistedDomains.add(domain.toLowerCase());
   }
-  
+
   /**
    * Remove domain from blacklist
    */
   static removeBlacklistedDomain(domain: string): void {
     this.blacklistedDomains.delete(domain.toLowerCase());
   }
-  
+
   /**
    * Get blacklisted domains
    */

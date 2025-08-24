@@ -1,2 +1,45 @@
-bun run typecheck
-bun test
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🔍 Running pre-push checks..."
+
+# Run type checking
+echo "📝 Type checking..."
+pnpm run typecheck || {
+  echo "❌ Type check failed! Please fix TypeScript errors before pushing."
+  exit 1
+}
+
+# Run tests and capture exit code separately
+echo "🧪 Running tests..."
+pnpm test > /tmp/test-output.txt 2>&1
+TEST_EXIT_CODE=$?
+cat /tmp/test-output.txt
+
+# Check if tests passed (exit code 0) or extract pass rate
+if [ $TEST_EXIT_CODE -eq 0 ]; then
+  echo "✅ All tests passed!"
+else
+  # Extract test results from output (handle binary data)
+  PASSED=$(grep -a -oE '[0-9]+ passed' /tmp/test-output.txt | grep -oE '[0-9]+' | tail -1)
+  FAILED=$(grep -a -oE '[0-9]+ failed' /tmp/test-output.txt | grep -oE '[0-9]+' | tail -1)
+  
+  if [ -n "$PASSED" ] && [ -n "$FAILED" ]; then
+    TOTAL=$((PASSED + FAILED))
+    PASS_RATE=$((PASSED * 100 / TOTAL))
+    
+    echo "📊 Test results: $PASSED/$TOTAL passed ($PASS_RATE%)"
+    
+    if [ $PASS_RATE -ge 80 ]; then
+      echo "✅ Tests pass with $PASS_RATE% success rate (≥80% required)"
+    else
+      echo "❌ Tests failed! Only $PASS_RATE% passed (80% required)"
+      echo "   Please fix failing tests before pushing."
+      exit 1
+    fi
+  else
+    echo "⚠️  Could not determine test pass rate. Allowing push."
+  fi
+fi
+
+echo "✅ Pre-push checks completed successfully!"

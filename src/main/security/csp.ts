@@ -58,34 +58,31 @@ export function applyCSP(): void {
   const isDevelopment = process.env.NODE_ENV === 'development';
   const policy = isDevelopment ? CSP_POLICIES.development : CSP_POLICIES.production;
   const cspString = generateCSPString(policy);
-  
+
   // Apply CSP to all sessions
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     const responseHeaders: Record<string, string[]> = {
       ...details.responseHeaders,
       'Content-Security-Policy': [cspString],
     };
-    
+
     // Add additional security headers
     responseHeaders['X-Content-Type-Options'] = ['nosniff'];
     responseHeaders['X-Frame-Options'] = ['DENY'];
     responseHeaders['X-XSS-Protection'] = ['1; mode=block'];
     responseHeaders['Referrer-Policy'] = ['strict-origin-when-cross-origin'];
     responseHeaders['Permissions-Policy'] = [
-      'accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()'
+      'accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()',
     ];
-    
+
     callback({ responseHeaders });
   });
-  
+
   // Log CSP violations in development
   if (isDevelopment) {
-    session.defaultSession.webRequest.onBeforeRequest(
-      { urls: ['csp-report:*'] },
-      (details) => {
-        console.warn('CSP Violation:', details.url);
-      }
-    );
+    session.defaultSession.webRequest.onBeforeRequest({ urls: ['csp-report:*'] }, (details) => {
+      console.warn('CSP Violation:', details.url);
+    });
   }
 }
 

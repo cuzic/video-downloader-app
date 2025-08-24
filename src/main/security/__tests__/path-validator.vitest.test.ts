@@ -69,7 +69,7 @@ describe('PathValidator', () => {
 
   describe('sanitizeFilename', () => {
     it('should remove dangerous characters', () => {
-      expect(PathValidator.sanitizeFilename('test<>:"/\\|?*.mp4')).toBe('test________.mp4');
+      expect(PathValidator.sanitizeFilename('test<>:"/\\|?*.mp4')).toBe('test_________.mp4');
     });
 
     it('should remove leading/trailing dots and spaces', () => {
