@@ -26,8 +26,10 @@ export function setupExceptionHandlers(): void {
   // Handle unhandled promise rejections
   process.on('unhandledRejection', (reason: unknown, _promise: Promise<unknown>) => {
     withContext(() => {
-      logError('Unhandled Promise Rejection', reason, {
+      const error = reason instanceof Error ? reason : undefined;
+      logError('Unhandled Promise Rejection', error, {
         type: 'unhandledRejection',
+        reason: reason instanceof Error ? undefined : String(reason),
       });
     });
   });

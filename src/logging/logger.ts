@@ -34,7 +34,7 @@ export type LogLevel = 'error' | 'warn' | 'info' | 'debug' | 'verbose';
  * Unified log function with correlation ID enrichment
  */
 function log(level: LogLevel, message: string, meta?: object): void {
-  const enrichedMeta = enrich(meta || {});
+  const enrichedMeta = enrich((meta as Record<string, unknown>) || {});
   winstonLogger.log(level, message, enrichedMeta);
 }
 

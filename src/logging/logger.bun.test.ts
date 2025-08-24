@@ -11,7 +11,9 @@ describe('Logging Context', () => {
         const cid = getCid();
         expect(cid).toBeTruthy();
         expect(typeof cid).toBe('string');
-        cids.add(cid);
+        if (cid) {
+          cids.add(cid);
+        }
       });
     }
 
