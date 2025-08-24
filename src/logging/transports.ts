@@ -8,8 +8,41 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { devFormat, jsonLineFormat } from './formats';
 
-// Configuration from environment variables
-const LOG_MAX_SIZE = process.env.LOG_MAX_SIZE ? parseInt(process.env.LOG_MAX_SIZE, 10) : 5242880; // 5MB default
+// Configuration from environment variables with validation
+function parseLogMaxSize(): number {
+  const defaultSize = 5242880; // 5MB default
+  const envValue = process.env.LOG_MAX_SIZE;
+
+  if (!envValue) {
+    return defaultSize;
+  }
+
+  const parsed = parseInt(envValue, 10);
+
+  // Validate the parsed value
+  if (isNaN(parsed) || parsed <= 0) {
+    console.warn(`Invalid LOG_MAX_SIZE value: ${envValue}. Using default: ${defaultSize}`);
+    return defaultSize;
+  }
+
+  // Ensure reasonable limits (min 1KB, max 1GB)
+  const MIN_SIZE = 1024; // 1KB
+  const MAX_SIZE = 1073741824; // 1GB
+
+  if (parsed < MIN_SIZE) {
+    console.warn(`LOG_MAX_SIZE too small: ${parsed}. Using minimum: ${MIN_SIZE}`);
+    return MIN_SIZE;
+  }
+
+  if (parsed > MAX_SIZE) {
+    console.warn(`LOG_MAX_SIZE too large: ${parsed}. Using maximum: ${MAX_SIZE}`);
+    return MAX_SIZE;
+  }
+
+  return parsed;
+}
+
+const LOG_MAX_SIZE = parseLogMaxSize();
 const LOG_MAX_FILES = process.env.LOG_MAX_FILES || '14d';
 const LOG_DATE_PATTERN = process.env.LOG_DATE_PATTERN || 'YYYY-MM-DD';
 
