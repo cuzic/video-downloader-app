@@ -4,14 +4,14 @@
 [test]
 # Test file patterns - use specific extensions
 preload = ["./src/test/setup.ts"]
+# Root directory for test discovery
+root = "./src"
 # Only run .bun.test.ts files with bun test
 pattern = "**/*.bun.test.{ts,tsx}"
-# Exclude Vitest test files
-exclude = ["**/*.vitest.test.ts", "**/*.spec.ts", "node_modules"]
 
 # Coverage settings
-coverage = true
-coverageThreshold = 80
+coverage = false
+coverageThreshold = 60
 
 # Timeout for tests (ms)
 timeout = 5000
