@@ -1,7 +1,7 @@
 /**
  * Global exception and rejection handlers
  */
-import { logError } from './logger';
+import { logError, logInfo } from './logger';
 import { withContext } from './context';
 
 /**
@@ -44,7 +44,7 @@ export function setupExceptionHandlers(): void {
   });
 
   // Log when handlers are set up
-  logError('Exception handlers initialized', undefined, {
+  logInfo('Exception handlers initialized', {
     handlers: ['uncaughtException', 'unhandledRejection', 'warning'],
   });
 }
