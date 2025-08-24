@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { TaskRepository } from '../task.repository';
 import type { AuditLogRepository } from '../audit-log.repository';
 import type { DownloadSpec } from '@/shared/types';
@@ -40,7 +41,7 @@ describe('TaskRepository', () => {
     mockAuditLogRepo = {
       logDownloadEvent: vi.fn(),
     } as unknown as AuditLogRepository;
-    
+
     taskRepo = new TaskRepository('/default/save/dir');
   });
 
@@ -60,11 +61,11 @@ describe('TaskRepository', () => {
       const taskId = await taskRepo.create(spec);
 
       expect(taskId).toBe('test-id-123');
-      expect((mockAuditLogRepo.logDownloadEvent as vi.Mock)).toHaveBeenCalledWith(
-        'test-id-123',
-        'task_created',
-        { url: spec.url }
-      );
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      const logDownloadEvent = mockAuditLogRepo.logDownloadEvent as Mock;
+      expect(logDownloadEvent).toHaveBeenCalledWith('test-id-123', 'task_created', {
+        url: spec.url,
+      });
     });
 
     it('should validate required fields', async () => {
@@ -93,11 +94,9 @@ describe('TaskRepository', () => {
     it('should pause an active task', async () => {
       await taskRepo.pause('test-id-123');
 
-      expect((mockAuditLogRepo.logDownloadEvent as vi.Mock)).toHaveBeenCalledWith(
-        'test-id-123',
-        'task_paused',
-        undefined
-      );
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      const logDownloadEvent = mockAuditLogRepo.logDownloadEvent as Mock;
+      expect(logDownloadEvent).toHaveBeenCalledWith('test-id-123', 'task_paused', undefined);
     });
   });
 
@@ -105,11 +104,9 @@ describe('TaskRepository', () => {
     it('should resume a paused task', async () => {
       await taskRepo.resume('test-id-123');
 
-      expect((mockAuditLogRepo.logDownloadEvent as vi.Mock)).toHaveBeenCalledWith(
-        'test-id-123',
-        'task_resumed',
-        undefined
-      );
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      const logDownloadEvent = mockAuditLogRepo.logDownloadEvent as Mock;
+      expect(logDownloadEvent).toHaveBeenCalledWith('test-id-123', 'task_resumed', undefined);
     });
   });
 
@@ -117,11 +114,9 @@ describe('TaskRepository', () => {
     it('should cancel a task', async () => {
       await taskRepo.cancel('test-id-123');
 
-      expect((mockAuditLogRepo.logDownloadEvent as vi.Mock)).toHaveBeenCalledWith(
-        'test-id-123',
-        'task_canceled',
-        undefined
-      );
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      const logDownloadEvent = mockAuditLogRepo.logDownloadEvent as Mock;
+      expect(logDownloadEvent).toHaveBeenCalledWith('test-id-123', 'task_canceled', undefined);
     });
   });
 
@@ -129,11 +124,9 @@ describe('TaskRepository', () => {
     it('should retry a failed task', async () => {
       await taskRepo.retry('test-id-123');
 
-      expect((mockAuditLogRepo.logDownloadEvent as vi.Mock)).toHaveBeenCalledWith(
-        'test-id-123',
-        'task_retried',
-        undefined
-      );
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      const logDownloadEvent = mockAuditLogRepo.logDownloadEvent as Mock;
+      expect(logDownloadEvent).toHaveBeenCalledWith('test-id-123', 'task_retried', undefined);
     });
   });
 });
