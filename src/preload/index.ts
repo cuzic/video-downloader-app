@@ -164,39 +164,23 @@ const api = {
   },
 };
 
+// Helper to create log functions
+const createLogFunction =
+  (level: string, cid?: string) => (msg: string, meta?: Record<string, unknown>) => {
+    ipcRenderer.send(`log:${level}`, { msg, meta, cid });
+  };
+
 // Define the logging API exposed to the renderer process
+const logLevels = ['info', 'warn', 'error', 'debug'] as const;
 const ulog: ULog = {
-  info: (msg: string, meta?: Record<string, unknown>) => {
-    ipcRenderer.send('log:info', { msg, meta });
-  },
-
-  warn: (msg: string, meta?: Record<string, unknown>) => {
-    ipcRenderer.send('log:warn', { msg, meta });
-  },
-
-  error: (msg: string, meta?: Record<string, unknown>) => {
-    ipcRenderer.send('log:error', { msg, meta });
-  },
-
-  debug: (msg: string, meta?: Record<string, unknown>) => {
-    ipcRenderer.send('log:debug', { msg, meta });
-  },
-
-  // Convenience method for logging with correlation ID
-  withCid: (cid: string) => ({
-    info: (msg: string, meta?: Record<string, unknown>) => {
-      ipcRenderer.send('log:info', { msg, meta, cid });
-    },
-    warn: (msg: string, meta?: Record<string, unknown>) => {
-      ipcRenderer.send('log:warn', { msg, meta, cid });
-    },
-    error: (msg: string, meta?: Record<string, unknown>) => {
-      ipcRenderer.send('log:error', { msg, meta, cid });
-    },
-    debug: (msg: string, meta?: Record<string, unknown>) => {
-      ipcRenderer.send('log:debug', { msg, meta, cid });
-    },
-  }),
+  ...(Object.fromEntries(logLevels.map((level) => [level, createLogFunction(level)])) as Pick<
+    ULog,
+    (typeof logLevels)[number]
+  >),
+  withCid: (cid: string) =>
+    Object.fromEntries(
+      logLevels.map((level) => [level, createLogFunction(level, cid)])
+    ) as ReturnType<ULog['withCid']>,
 };
 
 // Expose the APIs to the renderer process
