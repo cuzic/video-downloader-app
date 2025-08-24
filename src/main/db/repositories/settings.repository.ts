@@ -1,18 +1,22 @@
+/**
+ * DEPRECATED: This is the old SQLite-based settings repository
+ * For the new settings system, use src/main/services/settings.service.ts
+ *
+ * This file is kept for backward compatibility and migration purposes.
+ * It will be removed in a future version.
+ */
 import { app } from 'electron';
 import { db } from '../client';
 import { settings } from '../schema';
 import { eq } from 'drizzle-orm';
-import type { AppSettings } from '@/shared/types';
+import type { AppSettings } from '@/shared/types/settings';
 
 export class SettingsRepository {
   async get<T = any>(key: string): Promise<T | null> {
-    const result = await db.select()
-      .from(settings)
-      .where(eq(settings.key, key))
-      .limit(1);
-    
+    const result = await db.select().from(settings).where(eq(settings.key, key)).limit(1);
+
     if (!result[0]) return null;
-    
+
     try {
       return JSON.parse(result[0].value) as T;
     } catch {
@@ -21,106 +25,108 @@ export class SettingsRepository {
   }
 
   async set<T = any>(key: string, value: T, description?: string): Promise<void> {
-    const type = Array.isArray(value) ? 'array'
-      : value === null ? 'null'
-      : typeof value;
-    
+    const type = Array.isArray(value) ? 'array' : value === null ? 'null' : typeof value;
+
     const jsonValue = JSON.stringify(value);
-    
-    await db.insert(settings)
+
+    await db
+      .insert(settings)
       .values({
         key,
         value: jsonValue,
-        type: type as any,
-        description,
+        type,
+        description: description || null,
+        createdAt: new Date(),
         updatedAt: new Date(),
-        updatedBy: 'user',
       })
       .onConflictDoUpdate({
         target: settings.key,
         set: {
           value: jsonValue,
-          type: type as any,
+          type,
+          description: description || null,
           updatedAt: new Date(),
-          updatedBy: 'user',
         },
       });
   }
 
-  async getAll(): Promise<Record<string, any>> {
-    const rows = await db.select().from(settings);
-    
-    const result: Record<string, any> = {};
-    for (const row of rows) {
-      try {
-        result[row.key] = JSON.parse(row.value);
-      } catch {
-        result[row.key] = row.value;
-      }
-    }
-    
-    return result;
+  async delete(key: string): Promise<void> {
+    await db.delete(settings).where(eq(settings.key, key));
   }
 
-  async getAppSettings(): Promise<Partial<AppSettings>> {
-    const all = await this.getAll();
-    
-    // Map flat key-value pairs to nested AppSettings structure
-    const appSettings: Partial<AppSettings> = {};
-    
-    // Basic settings
-    if (all['general.downloadDirectory']) appSettings.downloadDirectory = all['general.downloadDirectory'];
-    if (all['general.maxConcurrentDownloads']) appSettings.maxConcurrentDownloads = all['general.maxConcurrentDownloads'];
-    if (all['general.autoStartDownload'] !== undefined) appSettings.autoStartDownload = all['general.autoStartDownload'];
-    if (all['general.notificationEnabled'] !== undefined) appSettings.notificationEnabled = all['general.notificationEnabled'];
-    
-    // FFmpeg settings
-    if (all['ffmpeg.path']) appSettings.ffmpegPath = all['ffmpeg.path'];
-    if (all['ffmpeg.args']) appSettings.ffmpegArgs = all['ffmpeg.args'];
-    
-    // UI settings
-    if (all['ui.theme']) appSettings.theme = all['ui.theme'];
-    if (all['ui.language']) appSettings.language = all['ui.language'];
-    
-    // Add more mappings as needed...
-    
-    return appSettings;
-  }
-
-  async setDefaults(defaults: Record<string, any>): Promise<void> {
-    for (const [key, value] of Object.entries(defaults)) {
-      const existing = await this.get(key);
-      if (existing === null) {
-        await this.set(key, value);
-      }
-    }
-  }
-
-  async initializeDefaults(): Promise<void> {
-    const defaults = {
-      'general.downloadDirectory': app.getPath('downloads'),
-      'general.maxConcurrentDownloads': 3,
-      'general.autoStartDownload': true,
-      'general.notificationEnabled': true,
-      
-      'ffmpeg.path': 'ffmpeg',
-      'ffmpeg.args': [],
-      
-      'ui.theme': 'system',
-      'ui.language': 'en',
-      
-      'quality.preference': 'highest',
-      
-      'detection.enabled': true,
-      'detection.minFileSize': 1048576,  // 1MB
-      'detection.maxFileSize': 10737418240,  // 10GB
-      'detection.autoDetect': true,
-      
-      'retry.downloadMaxAttempts': 3,
-      'retry.segmentMaxAttempts': 5,
-      'retry.segmentTimeoutMs': 30000,
+  async getAllSettings(): Promise<AppSettings> {
+    // Return default settings structure for backward compatibility
+    // The actual settings are now managed by the new settings system
+    const defaultSettings: AppSettings = {
+      general: {
+        downloadDirectory: app.getPath('downloads'),
+        maxConcurrentDownloads: 3,
+        autoStartDownload: true,
+        notificationEnabled: true,
+        closeToTray: false,
+        startMinimized: false,
+      },
+      quality: {
+        preference: 'highest',
+        fallbackQuality: 'next-lower',
+        customRules: [],
+      },
+      network: {
+        timeout: 30000,
+        maxRetries: 3,
+        retryDelay: 2000,
+        headers: {},
+      },
+      ui: {
+        theme: 'system',
+        language: 'en',
+        windowBounds: {
+          width: 1200,
+          height: 800,
+        },
+        showInTray: true,
+        minimizeOnClose: false,
+      },
+      advanced: {
+        ffmpegPath: 'ffmpeg',
+        ffmpegArgs: [],
+        concurrentSegments: 4,
+        enableDebugMode: false,
+        logLevel: 'info',
+        enableTelemetry: true,
+        updateChannel: 'stable',
+      },
     };
-    
-    await this.setDefaults(defaults);
+
+    // Try to get individual settings from DB for migration
+    const downloadDir = await this.get<string>('downloadDirectory');
+    if (downloadDir) defaultSettings.general.downloadDirectory = downloadDir;
+
+    const maxDownloads = await this.get<number>('maxConcurrentDownloads');
+    if (maxDownloads) defaultSettings.general.maxConcurrentDownloads = maxDownloads;
+
+    const autoStart = await this.get<boolean>('autoStartDownload');
+    if (autoStart !== null) defaultSettings.general.autoStartDownload = autoStart;
+
+    const notifications = await this.get<boolean>('notificationEnabled');
+    if (notifications !== null) defaultSettings.general.notificationEnabled = notifications;
+
+    const ffmpegPath = await this.get<string>('ffmpegPath');
+    if (ffmpegPath) defaultSettings.advanced.ffmpegPath = ffmpegPath;
+
+    const ffmpegArgs = await this.get<string[]>('ffmpegArgs');
+    if (ffmpegArgs) defaultSettings.advanced.ffmpegArgs = ffmpegArgs;
+
+    const theme = await this.get<'light' | 'dark' | 'system'>('theme');
+    if (theme) defaultSettings.ui.theme = theme;
+
+    const language = await this.get<string>('language');
+    if (language) defaultSettings.ui.language = language as 'en' | 'ja' | 'zh-CN' | 'ko';
+
+    return defaultSettings;
+  }
+
+  async clearAll(): Promise<void> {
+    await db.delete(settings);
   }
 }
