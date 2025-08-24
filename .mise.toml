@@ -2,9 +2,9 @@
 # Tool version management and task runner
 
 [tools]
-# Runtime and language versions only
+# Runtime and language versions
 node = "20.10.0"
-bun = "latest"
+pnpm = "9.7.0"
 
 [env]
 # Environment variables
@@ -29,58 +29,58 @@ SEGMENT_RETRY_COUNT = "3"
 
 [tasks.install]
 description = "Install dependencies"
-run = "bun install"
+run = "pnpm install"
 
 [tasks.dev]
 description = "Start development server"
-run = "bun run dev"
+run = "pnpm run dev"
 depends = ["install"]
 
 [tasks.build]
 description = "Build for production"
-run = "bun run build"
+run = "pnpm run build"
 depends = ["clean", "typecheck"]
 
 [tasks.test]
 description = "Run all tests"
-run = "bun run test"
+run = "pnpm run test"
 
 [tasks."test:watch"]
 description = "Run tests in watch mode"
-run = "bun run test:watch"
+run = "pnpm run test:watch"
 
 [tasks."test:coverage"]
 description = "Run tests with coverage"
-run = "bun run test:coverage"
+run = "pnpm run test:coverage"
 
 [tasks."test:unit"]
 description = "Run unit tests only"
-run = "bun run test:unit"
+run = "pnpm run test:unit"
 
 [tasks."test:e2e"]
 description = "Run E2E tests"
-run = "bun run test:e2e"
+run = "pnpm run test:e2e"
 depends = ["build"]
 
 [tasks.lint]
 description = "Run ESLint"
-run = "bun run lint"
+run = "pnpm run lint"
 
 [tasks."lint:fix"]
 description = "Run ESLint with auto-fix"
-run = "bun run lint:fix"
+run = "pnpm run lint:fix"
 
 [tasks.format]
 description = "Format code with Prettier"
-run = "bun run format"
+run = "pnpm run format"
 
 [tasks."format:check"]
 description = "Check code formatting"
-run = "bun run format:check"
+run = "pnpm run format:check"
 
 [tasks.typecheck]
 description = "Run TypeScript type checking"
-run = "bun run typecheck"
+run = "pnpm run typecheck"
 
 [tasks.check]
 description = "Run all checks (type, lint, format)"
@@ -88,19 +88,19 @@ depends = ["typecheck", "lint", "format:check"]
 
 [tasks."db:generate"]
 description = "Generate database migrations"
-run = "bun run db:generate"
+run = "pnpm run db:generate"
 
 [tasks."db:push"]
 description = "Push database changes"
-run = "bun run db:push"
+run = "pnpm run db:push"
 
 [tasks."db:studio"]
 description = "Open Drizzle Studio"
-run = "bun run db:studio"
+run = "pnpm run db:studio"
 
 [tasks."db:migrate"]
 description = "Run database migrations"
-run = "bun run db:migrate"
+run = "pnpm run db:migrate"
 depends = ["db:generate"]
 
 [tasks.clean]
@@ -109,60 +109,64 @@ run = "rm -rf dist dist-electron"
 
 [tasks."clean:all"]
 description = "Clean everything including dependencies (OS command)"
-run = "rm -rf dist dist-electron node_modules .bun bun.lockb"
+run = "rm -rf dist dist-electron node_modules pnpm-lock.yaml .pnpm-store"
 
 [tasks."clean:cache"]
-description = "Clean Bun cache (OS command)"
-run = "rm -rf .bun ~/.bun/cache"
+description = "Clean pnpm cache (OS command)"
+run = "pnpm store prune"
 
 [tasks.dist]
 description = "Package application for distribution"
-run = "bunx electron-builder"
+run = "pnpm exec electron-builder"
 depends = ["build"]
 
 [tasks."dist:mac"]
 description = "Package for macOS"
-run = "bunx electron-builder --mac"
+run = "pnpm exec electron-builder --mac"
 depends = ["build"]
 
 [tasks."dist:win"]
 description = "Package for Windows"
-run = "bunx electron-builder --win"
+run = "pnpm exec electron-builder --win"
 depends = ["build"]
 
 [tasks."dist:linux"]
 description = "Package for Linux"
-run = "bunx electron-builder --linux"
+run = "pnpm exec electron-builder --linux"
 depends = ["build"]
 
 [tasks.electron]
 description = "Run Electron (production mode)"
-run = "bun run electron"
+run = "pnpm run electron"
 depends = ["build"]
 
 [tasks."electron:dev"]
 description = "Run Electron (development mode)"
-run = "bun run electron:dev"
+run = "pnpm run electron:dev"
 env = { NODE_ENV = "development", ELECTRON_IS_DEV = "1" }
 
 [tasks.update]
 description = "Update dependencies"
 run = """
-bunx npm-check-updates -u
-bun install
+pnpm exec npm-check-updates -u
+pnpm install
 """
 
 [tasks.audit]
 description = "Run security audit"
-run = "bun audit"
+run = "pnpm audit"
 
 [tasks.prepare]
 description = "Prepare Git hooks with Husky"
-run = "bunx husky"
+run = "pnpm exec husky"
 
 [tasks.docs]
 description = "Generate API documentation"
-run = "bunx typedoc --out docs/api src"
+run = "pnpm exec typedoc --out docs/api src"
+
+[tasks.rebuild]
+description = "Rebuild native modules for Electron"
+run = "pnpm run rebuild"
 
 [tasks.info]
 description = "Show project information"
@@ -170,7 +174,7 @@ run = """
 echo "Video Downloader - Electron App"
 echo "================================"
 echo "Node: $(node --version)"
-echo "Bun: $(bun --version)"
+echo "pnpm: $(pnpm --version)"
 echo ""
 echo "Run 'mise tasks' to see all available tasks"
 """
@@ -199,26 +203,26 @@ depends = ["check", "test", "build", "dist"]
 
 [tasks.setup]
 description = "Setup development environment"
-run = "bun run scripts/setup.ts"
+run = "pnpm exec tsx scripts/setup.ts"
 
 # Watch tasks
 [tasks.watch]
 description = "Watch mode for development"
 run = """
-bunx concurrently -n "main,preload,renderer" \
-  "bun build src/main/index.ts --outdir dist/main --watch" \
-  "bun build src/preload/index.ts --outdir dist/preload --watch" \
-  "bunx vite"
+pnpm exec concurrently -n "main,preload,renderer" \
+  "pnpm exec esbuild src/main/index.ts --bundle --outdir=dist/main --watch --platform=node --target=node20 --format=esm --external:electron --external:better-sqlite3 --external:keytar --external:electron-store --external:winston --external:winston-daily-rotate-file --external:drizzle-orm" \
+  "pnpm exec esbuild src/preload/index.ts --bundle --outdir=dist/preload --watch --platform=node --target=node20 --format=esm" \
+  "pnpm exec vite"
 """
 
 [tasks."watch:main"]
 description = "Watch main process only"
-run = "bun build src/main/index.ts --outdir dist/main --watch"
+run = "pnpm exec esbuild src/main/index.ts --bundle --outdir=dist/main --watch --platform=node --target=node20 --format=esm --external:electron --external:better-sqlite3 --external:keytar --external:electron-store --external:winston --external:winston-daily-rotate-file --external:drizzle-orm"
 
 [tasks."watch:preload"]
 description = "Watch preload script only"
-run = "bun build src/preload/index.ts --outdir dist/preload --watch"
+run = "pnpm exec esbuild src/preload/index.ts --bundle --outdir=dist/preload --watch --platform=node --target=node20 --format=esm"
 
 [tasks."watch:renderer"]
 description = "Watch renderer process only"
-run = "bunx vite"
+run = "pnpm exec vite"

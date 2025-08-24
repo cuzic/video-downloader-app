@@ -3,14 +3,16 @@ node_modules/
 .pnp
 .pnp.js
 
-# Bun
-.bun/
-bun.lockb
+# pnpm
+pnpm-lock.yaml
+.pnpm-store/
+.pnpm-debug.log
 
-# Other package manager files (project uses Bun)
+# Other package manager files (project uses pnpm)
 package-lock.json
 yarn.lock
-pnpm-lock.yaml
+bun.lockb
+.bun/
 
 # Build outputs
 dist/

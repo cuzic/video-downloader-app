@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env tsx
 
 /**
  * Development server script
@@ -7,8 +7,10 @@
 
 import { spawn } from 'child_process';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
-const rootDir = path.resolve(import.meta.dir, '..');
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const rootDir = path.resolve(__dirname, '..');
 
 // Colors for console output
 const colors = {
@@ -26,16 +28,16 @@ function log(process: string, message: string, color: string = colors.reset) {
 }
 
 // Start Vite for renderer process
-const viteProcess = spawn('bunx', ['vite'], {
+const viteProcess = spawn('pnpm', ['exec', 'vite'], {
   cwd: rootDir,
   stdio: 'inherit',
   shell: true,
 });
 
-// Build and watch preload script
+// Build and watch preload script using esbuild
 const preloadProcess = spawn(
-  'bun',
-  ['build', 'src/preload/index.ts', '--outdir', 'dist/preload', '--watch'],
+  'pnpm',
+  ['exec', 'esbuild', 'src/preload/index.ts', '--bundle', '--outdir=dist/preload', '--watch', '--platform=node', '--target=node20', '--format=esm'],
   {
     cwd: rootDir,
     stdio: 'inherit',
@@ -43,10 +45,10 @@ const preloadProcess = spawn(
   }
 );
 
-// Build and watch main process
+// Build and watch main process using esbuild
 const mainProcess = spawn(
-  'bun',
-  ['build', 'src/main/index.ts', '--outdir', 'dist/main', '--watch'],
+  'pnpm',
+  ['exec', 'esbuild', 'src/main/index.ts', '--bundle', '--outdir=dist/main', '--watch', '--platform=node', '--target=node20', '--format=esm', '--external:electron', '--external:better-sqlite3', '--external:keytar', '--external:electron-store', '--external:winston', '--external:winston-daily-rotate-file', '--external:drizzle-orm'],
   {
     cwd: rootDir,
     stdio: 'inherit',
@@ -56,7 +58,7 @@ const mainProcess = spawn(
 
 // Start Electron when main process is built
 setTimeout(() => {
-  const electronProcess = spawn('bunx', ['electron', '.', '--dev'], {
+  const electronProcess = spawn('pnpm', ['exec', 'electron', '.', '--dev'], {
     cwd: rootDir,
     stdio: 'inherit',
     shell: true,
