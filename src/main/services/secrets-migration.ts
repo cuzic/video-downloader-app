@@ -59,12 +59,8 @@ export class SecretsMigration {
   private hasSensitiveData(): boolean {
     const settings = this.store.get('settings') as AppSettings | undefined;
 
-    if (!settings) {
-      return false;
-    }
-
     // Check for proxy credentials
-    if (settings.proxy?.auth?.password) {
+    if (settings?.proxy?.auth?.password) {
       return true;
     }
 

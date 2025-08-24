@@ -1,4 +1,5 @@
-import { app, dialog, BrowserWindow } from 'electron';
+import type { BrowserWindow } from 'electron';
+import { app, dialog } from 'electron';
 import fs from 'fs';
 import path from 'path';
 

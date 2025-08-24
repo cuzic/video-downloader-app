@@ -1,7 +1,23 @@
-import { describe, it, expect, beforeAll } from 'vitest';
-import { PathValidator } from '../path-validator';
+import { describe, it, expect, beforeAll, vi } from 'vitest';
 import path from 'path';
 import os from 'os';
+
+// Mock electron
+vi.mock('electron', () => ({
+  app: {
+    getPath: vi.fn((key: string) => {
+      const paths: Record<string, string> = {
+        downloads: path.join(os.homedir(), 'Downloads'),
+        videos: path.join(os.homedir(), 'Videos'),
+        userData: path.join(os.homedir(), '.config', 'video-downloader'),
+        temp: os.tmpdir(),
+      };
+      return paths[key] || path.join(os.homedir(), key);
+    }),
+  },
+}));
+
+import { PathValidator } from '../path-validator';
 
 describe('PathValidator', () => {
   beforeAll(() => {

@@ -1,4 +1,4 @@
-import { IpcMainInvokeEvent } from 'electron';
+import type { IpcMainInvokeEvent } from 'electron';
 import type { DownloadSpec, DownloadTaskDTO } from '@/shared/types';
 import type { DownloadStartResponse } from '@/shared/types/ipc.types';
 import { DOWNLOAD_CHANNELS } from '@/shared/constants/channels';

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { IpcMainInvokeEvent } from 'electron';
+import type { IpcMainInvokeEvent } from 'electron';
 import { downloadHandlers } from '../download.handler';
 import { DOWNLOAD_CHANNELS } from '@/shared/constants/channels';
 import type { DownloadSpec } from '@/shared/types';
@@ -38,7 +38,8 @@ describe('Download Handlers', () => {
   });
 
   describe('START handler', () => {
-    const startHandler = downloadHandlers.find(h => h.channel === DOWNLOAD_CHANNELS.START)!;
+    const startHandler = downloadHandlers.find(h => h.channel === DOWNLOAD_CHANNELS.START);
+    if (!startHandler) throw new Error('START handler not found');
 
     it('should start a new download', async () => {
       const spec: DownloadSpec = {
@@ -60,7 +61,8 @@ describe('Download Handlers', () => {
   });
 
   describe('PAUSE handler', () => {
-    const pauseHandler = downloadHandlers.find(h => h.channel === DOWNLOAD_CHANNELS.PAUSE)!;
+    const pauseHandler = downloadHandlers.find(h => h.channel === DOWNLOAD_CHANNELS.PAUSE);
+    if (!pauseHandler) throw new Error('PAUSE handler not found');
 
     it('should pause a download', async () => {
       await pauseHandler.handler(mockEvent, 'test-task-id' as any);
@@ -76,7 +78,8 @@ describe('Download Handlers', () => {
   });
 
   describe('RESUME handler', () => {
-    const resumeHandler = downloadHandlers.find(h => h.channel === DOWNLOAD_CHANNELS.RESUME)!;
+    const resumeHandler = downloadHandlers.find(h => h.channel === DOWNLOAD_CHANNELS.RESUME);
+    if (!resumeHandler) throw new Error('RESUME handler not found');
 
     it('should resume a download', async () => {
       await resumeHandler.handler(mockEvent, 'test-task-id' as any);
@@ -87,7 +90,8 @@ describe('Download Handlers', () => {
   });
 
   describe('CANCEL handler', () => {
-    const cancelHandler = downloadHandlers.find(h => h.channel === DOWNLOAD_CHANNELS.CANCEL)!;
+    const cancelHandler = downloadHandlers.find(h => h.channel === DOWNLOAD_CHANNELS.CANCEL);
+    if (!cancelHandler) throw new Error('CANCEL handler not found');
 
     it('should cancel a download', async () => {
       await cancelHandler.handler(mockEvent, 'test-task-id' as any);
@@ -98,7 +102,8 @@ describe('Download Handlers', () => {
   });
 
   describe('LIST_TASKS handler', () => {
-    const listHandler = downloadHandlers.find(h => h.channel === DOWNLOAD_CHANNELS.LIST_TASKS)!;
+    const listHandler = downloadHandlers.find(h => h.channel === DOWNLOAD_CHANNELS.LIST_TASKS);
+    if (!listHandler) throw new Error('LIST_TASKS handler not found');
 
     it('should return empty array when no tasks', async () => {
       const result = await listHandler.handler(mockEvent, undefined as any);

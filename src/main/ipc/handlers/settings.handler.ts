@@ -1,4 +1,4 @@
-import { IpcMainInvokeEvent } from 'electron';
+import type { IpcMainInvokeEvent } from 'electron';
 import type { AppSettings } from '@/shared/types';
 import { SETTINGS_CHANNELS } from '@/shared/constants/channels';
 import { wrapHandler, validateRequired } from '../utils/error-handler';

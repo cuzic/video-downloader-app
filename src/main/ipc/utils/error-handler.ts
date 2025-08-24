@@ -1,4 +1,4 @@
-import { app } from 'electron';
+import { app, dialog } from 'electron';
 import type { IPCError } from '@/shared/types/ipc.types';
 import { ErrorCode } from '@/shared/types/ipc.types';
 import { auditLogRepo } from '@/main/db/repositories';
@@ -17,7 +17,7 @@ export function toIPCError(error: unknown): IPCError {
         stack: error.stack,
       };
     }
-    
+
     if (error.message.includes('ENOENT')) {
       return {
         code: ErrorCode.FILE_NOT_FOUND,
@@ -26,7 +26,7 @@ export function toIPCError(error: unknown): IPCError {
         stack: error.stack,
       };
     }
-    
+
     if (error.message.includes('EACCES') || error.message.includes('EPERM')) {
       return {
         code: ErrorCode.FILE_ACCESS_DENIED,
@@ -35,7 +35,7 @@ export function toIPCError(error: unknown): IPCError {
         stack: error.stack,
       };
     }
-    
+
     if (error.message.includes('ENOSPC')) {
       return {
         code: ErrorCode.DISK_FULL,
@@ -44,7 +44,7 @@ export function toIPCError(error: unknown): IPCError {
         stack: error.stack,
       };
     }
-    
+
     if (error.message.includes('ETIMEDOUT') || error.message.includes('ESOCKETTIMEDOUT')) {
       return {
         code: ErrorCode.NETWORK_TIMEOUT,
@@ -53,7 +53,7 @@ export function toIPCError(error: unknown): IPCError {
         stack: error.stack,
       };
     }
-    
+
     if (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED')) {
       return {
         code: ErrorCode.NETWORK_ERROR,
@@ -62,7 +62,7 @@ export function toIPCError(error: unknown): IPCError {
         stack: error.stack,
       };
     }
-    
+
     // Default error
     return {
       code: ErrorCode.OPERATION_FAILED,
@@ -71,7 +71,7 @@ export function toIPCError(error: unknown): IPCError {
       stack: error.stack,
     };
   }
-  
+
   // Handle string errors
   if (typeof error === 'string') {
     return {
@@ -79,7 +79,7 @@ export function toIPCError(error: unknown): IPCError {
       message: error,
     };
   }
-  
+
   // Handle unknown errors
   return {
     code: ErrorCode.OPERATION_FAILED,
@@ -99,7 +99,7 @@ export function wrapHandler<T extends any[], R>(
       return await handler(...args);
     } catch (error) {
       const ipcError = toIPCError(error);
-      
+
       // Log the error
       await auditLogRepo.error(
         'ipc',
@@ -111,7 +111,7 @@ export function wrapHandler<T extends any[], R>(
           error: ipcError,
         }
       );
-      
+
       // Re-throw as IPCError
       throw ipcError;
     }
@@ -122,8 +122,8 @@ export function wrapHandler<T extends any[], R>(
  * Validate required parameters
  */
 export function validateRequired(params: Record<string, any>, required: string[]): void {
-  const missing = required.filter(key => params[key] === undefined || params[key] === null);
-  
+  const missing = required.filter((key) => params[key] === undefined || params[key] === null);
+
   if (missing.length > 0) {
     throw {
       code: ErrorCode.INVALID_ARGUMENT,
@@ -136,7 +136,7 @@ export function validateRequired(params: Record<string, any>, required: string[]
 /**
  * Create a validation error
  */
-export function validationError(message: string, details?: any): IPCError {
+export function validationError(message: string, details?: unknown): IPCError {
   return {
     code: ErrorCode.INVALID_ARGUMENT,
     message,
@@ -170,18 +170,13 @@ export function unauthorizedError(action: string): IPCError {
 export async function logIPCError(
   channel: string,
   error: IPCError,
-  context?: any
+  context?: unknown
 ): Promise<void> {
-  await auditLogRepo.error(
-    'ipc',
-    channel,
-    new Error(error.message),
-    {
-      code: error.code,
-      details: error.details,
-      context,
-    }
-  );
+  await auditLogRepo.error('ipc', channel, new Error(error.message), {
+    code: error.code,
+    details: error.details,
+    context,
+  });
 }
 
 /**
@@ -189,30 +184,29 @@ export async function logIPCError(
  */
 export function setupErrorHandlers(): void {
   // Handle uncaught exceptions in IPC handlers
-  process.on('uncaughtException', async (error) => {
+  process.on('uncaughtException', (error) => {
     console.error('Uncaught exception in IPC handler:', error);
-    
+
     const ipcError = toIPCError(error);
-    await logIPCError('uncaught_exception', ipcError, {
+    void logIPCError('uncaught_exception', ipcError, {
       stack: error.stack,
     });
-    
+
     // Don't exit the app, but report the error
     if (app.isReady()) {
-      const { dialog } = require('electron');
       dialog.showErrorBox(
         'Unexpected Error',
         'An unexpected error occurred. The application may be unstable.'
       );
     }
   });
-  
+
   // Handle unhandled promise rejections
-  process.on('unhandledRejection', async (reason, promise) => {
+  process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled promise rejection:', reason);
-    
+
     const ipcError = toIPCError(reason);
-    await logIPCError('unhandled_rejection', ipcError, {
+    void logIPCError('unhandled_rejection', ipcError, {
       promise: String(promise),
     });
   });

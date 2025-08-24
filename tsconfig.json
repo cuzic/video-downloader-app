@@ -27,6 +27,7 @@
     "out",
     "docs",
     "*.config.ts",
-    "drizzle.config.ts"
+    "drizzle.config.ts",
+    "src/test/examples/**/*"
   ]
 }
