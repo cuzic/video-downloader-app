@@ -20,7 +20,7 @@ export default defineConfig({
           build: {
             outDir: 'dist/main',
             rollupOptions: {
-              external: ['electron', 'better-sqlite3'],
+              external: ['electron', 'better-sqlite3', 'keytar', 'electron-store', 'winston', 'winston-daily-rotate-file', 'drizzle-orm', 'dotenv'],
             },
           },
         },
@@ -36,7 +36,7 @@ export default defineConfig({
           build: {
             outDir: 'dist/preload',
             rollupOptions: {
-              external: ['electron'],
+              external: ['electron', 'dotenv'],
             },
           },
         },
