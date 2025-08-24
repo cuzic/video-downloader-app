@@ -55,7 +55,7 @@ describe('SecretsService', () => {
     it('should initialize successfully when keytar is available', async () => {
       mockKeytar.findCredentials.mockResolvedValue([]);
 
-      const _newService = new SecretsService();
+      new SecretsService();
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockKeytar.findCredentials).toHaveBeenCalledWith('video-downloader-app');
