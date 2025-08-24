@@ -1,7 +1,9 @@
-import { ipcMain, BrowserWindow, IpcMainInvokeEvent } from 'electron';
+import type { BrowserWindow, IpcMainInvokeEvent } from 'electron';
+import { ipcMain } from 'electron';
 import { downloadHandlers } from './handlers/download.handler';
 import { settingsHandlers } from './handlers/settings.handler';
 import { systemHandlers } from './handlers/system.handler';
+import { SecretsHandler } from './handlers/secrets.handler';
 import { setupErrorHandlers } from './utils/error-handler';
 
 /**
@@ -11,19 +13,22 @@ import { setupErrorHandlers } from './utils/error-handler';
 export class IpcHandler {
   private mainWindow: BrowserWindow | null = null;
   private registered = false;
-  
+  private secretsHandler: SecretsHandler;
+
   constructor() {
     // Setup global error handlers
     setupErrorHandlers();
+    // Initialize secrets handler
+    this.secretsHandler = new SecretsHandler();
   }
-  
+
   /**
    * Set the main window reference
    */
   setMainWindow(window: BrowserWindow): void {
     this.mainWindow = window;
   }
-  
+
   /**
    * Register all IPC handlers
    */
@@ -32,35 +37,38 @@ export class IpcHandler {
       console.warn('IPC handlers already registered');
       return;
     }
-    
+
     console.log('Registering IPC handlers...');
-    
+
     // Register download handlers
     downloadHandlers.forEach(({ channel, handler }) => {
       ipcMain.handle(channel, this.wrapHandler(channel, handler));
     });
-    
+
     // Register settings handlers
     settingsHandlers.forEach(({ channel, handler }) => {
       ipcMain.handle(channel, this.wrapHandler(channel, handler));
     });
-    
+
     // Register system handlers
     systemHandlers.forEach(({ channel, handler }) => {
       ipcMain.handle(channel, this.wrapHandler(channel, handler));
     });
-    
+
+    // Register secrets handlers
+    this.secretsHandler.register();
+
     this.registered = true;
     console.log('IPC handlers registered successfully');
   }
-  
+
   /**
    * Wrap handler with error handling and logging
    */
-  private wrapHandler(channel: string, handler: Function) {
+  private wrapHandler(channel: string, handler: (...args: any[]) => any) {
     return async (event: IpcMainInvokeEvent, ...args: any[]) => {
       const startTime = Date.now();
-      
+
       try {
         console.log(`IPC [${channel}] invoked with args:`, args);
         const result = await handler(event, ...args);
@@ -74,7 +82,7 @@ export class IpcHandler {
       }
     };
   }
-  
+
   /**
    * Unregister all IPC handlers
    */
@@ -82,25 +90,28 @@ export class IpcHandler {
     if (!this.registered) {
       return;
     }
-    
+
     console.log('Unregistering IPC handlers...');
-    
+
     // Remove all handlers
     [...downloadHandlers, ...settingsHandlers, ...systemHandlers].forEach(({ channel }) => {
       ipcMain.removeHandler(channel);
     });
-    
+
+    // Unregister secrets handlers
+    this.secretsHandler.unregister();
+
     this.registered = false;
     console.log('IPC handlers unregistered');
   }
-  
+
   /**
    * Get main window
    */
   getMainWindow(): BrowserWindow | null {
     return this.mainWindow;
   }
-  
+
   /**
    * Cleanup resources
    */
@@ -130,10 +141,10 @@ export function initializeIpc(mainWindow: BrowserWindow): IpcHandler {
   if (!ipcHandler) {
     ipcHandler = new IpcHandler();
   }
-  
+
   ipcHandler.setMainWindow(mainWindow);
   ipcHandler.register();
-  
+
   return ipcHandler;
 }
 

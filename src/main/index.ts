@@ -6,6 +6,7 @@ import { applyCSP } from './security/csp';
 import { PathValidator } from './security/path-validator';
 import { DRMDetector } from './security/drm-detector';
 import { LegalConsentManager } from './security/legal-consent';
+import { SecretsMigration } from './services/secrets-migration';
 import { setupLoggingIPC, setupExceptionHandlers, logStartup, logShutdown } from '../logging';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling
@@ -89,6 +90,9 @@ void app.whenReady().then(async () => {
 
   // Initialize database system
   await initDatabase();
+
+  // Auto-migrate secrets from electron-store to keytar
+  await SecretsMigration.autoMigrate();
 
   // Register IPC handlers
   registerIpcHandlers();
