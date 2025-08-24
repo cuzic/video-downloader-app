@@ -49,6 +49,23 @@ export class SettingsStoreHandler {
       this.broadcast('on:settings:cleared', data);
     });
 
+    // Forward migration events
+    this.settingsService.on('settings:migrated', (data) => {
+      this.broadcast('on:settings:migrated', data);
+    });
+
+    this.settingsService.on('settings:migration-failed', (data) => {
+      this.broadcast('on:settings:migration-failed', data);
+    });
+
+    this.settingsService.on('settings:rolled-back', (data) => {
+      this.broadcast('on:settings:rolled-back', data);
+    });
+
+    this.settingsService.on('settings:rollback-failed', (data) => {
+      this.broadcast('on:settings:rollback-failed', data);
+    });
+
     // Forward theme and language changes
     this.settingsService.on('theme:change', (theme) => {
       this.broadcast('on:theme:change', theme);
@@ -318,6 +335,82 @@ export class SettingsStoreHandler {
       }
     );
 
+    // Check if migration is needed
+    ipcMain.handle('app:settings:needs-migration', async (): Promise<boolean> => {
+      try {
+        return await this.settingsService.needsMigration();
+      } catch (error) {
+        logger.error('Failed to check migration status', error as Error);
+        throw error;
+      }
+    });
+
+    // Get pending migrations
+    ipcMain.handle('app:settings:get-pending-migrations', async () => {
+      try {
+        return await this.settingsService.getPendingMigrations();
+      } catch (error) {
+        logger.error('Failed to get pending migrations', error as Error);
+        throw error;
+      }
+    });
+
+    // Run migration
+    ipcMain.handle('app:settings:run-migration', async () => {
+      try {
+        return await this.settingsService.runMigration();
+      } catch (error) {
+        logger.error('Failed to run migration', error as Error);
+        throw error;
+      }
+    });
+
+    // Rollback settings
+    ipcMain.handle(
+      'app:settings:rollback',
+      async (_event: IpcMainInvokeEvent, targetVersion: string) => {
+        try {
+          return await this.settingsService.rollbackSettings(targetVersion);
+        } catch (error) {
+          logger.error('Failed to rollback settings', error as Error, { targetVersion });
+          throw error;
+        }
+      }
+    );
+
+    // Get migration history
+    ipcMain.handle('app:settings:get-migration-history', async () => {
+      try {
+        return await this.settingsService.getMigrationHistory();
+      } catch (error) {
+        logger.error('Failed to get migration history', error as Error);
+        throw error;
+      }
+    });
+
+    // Validate current settings
+    ipcMain.handle('app:settings:validate-current', async () => {
+      try {
+        return await this.settingsService.validateCurrentSettings();
+      } catch (error) {
+        logger.error('Failed to validate current settings', error as Error);
+        throw error;
+      }
+    });
+
+    // Cleanup migration backups
+    ipcMain.handle(
+      'app:settings:cleanup-migration-backups',
+      async (_event: IpcMainInvokeEvent, maxAgeDays: number = 30) => {
+        try {
+          await this.settingsService.cleanupMigrationBackups(maxAgeDays);
+        } catch (error) {
+          logger.error('Failed to cleanup migration backups', error as Error);
+          throw error;
+        }
+      }
+    );
+
     logger.info('Settings store IPC handlers registered');
   }
 
@@ -344,6 +437,13 @@ export class SettingsStoreHandler {
       'app:settings:get-store-info',
       'app:settings:clear-all',
       'app:settings:migrate-legacy',
+      'app:settings:needs-migration',
+      'app:settings:get-pending-migrations',
+      'app:settings:run-migration',
+      'app:settings:rollback',
+      'app:settings:get-migration-history',
+      'app:settings:validate-current',
+      'app:settings:cleanup-migration-backups',
     ];
 
     channels.forEach((channel) => {

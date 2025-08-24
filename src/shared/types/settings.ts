@@ -24,6 +24,9 @@ export const QualitySettingsSchema = z.object({
   customResolution: z.string().optional(),
   customBandwidth: z.number().optional(),
   fallbackQuality: z.enum(['next-lower', 'next-higher', 'abort']).default('next-lower'),
+  minResolution: z.string().optional(),
+  maxResolution: z.string().optional(),
+  preferredCodec: z.string().optional(),
   customRules: z
     .array(
       z.object({
@@ -55,6 +58,7 @@ export const NetworkSettingsSchema = z.object({
     })
     .optional(),
   userAgent: z.string().optional(),
+  headers: z.record(z.string()).default({}),
   timeout: z.number().min(5000).max(120000).default(30000),
   maxRetries: z.number().min(0).max(10).default(3),
   retryDelay: z.number().min(1000).max(60000).default(2000),
@@ -84,6 +88,7 @@ export const UISettingsSchema = z.object({
 export const AdvancedSettingsSchema = z.object({
   ffmpegPath: z.string().default('ffmpeg'),
   ffmpegArgs: z.array(z.string()).default([]),
+  concurrentSegments: z.number().int().min(1).max(16).default(4),
   enableDebugMode: z.boolean().default(false),
   logLevel: z.enum(['error', 'warn', 'info', 'debug', 'verbose']).default('info'),
   enableTelemetry: z.boolean().default(true),

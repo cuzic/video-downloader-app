@@ -59,7 +59,7 @@ export class SettingsStoreRepository {
    */
   private createMigrations() {
     return {
-      '1.0.0': (store: Store<StoreSchema>) => {
+      '1.0.0': (store: any) => {
         // Initial migration - ensure proper structure
         if (!store.has('settings')) {
           store.set('settings', AppSettingsSchema.parse({}));
@@ -68,7 +68,7 @@ export class SettingsStoreRepository {
           store.set('version', '1.0.0');
         }
       },
-      '1.1.0': (store: Store<StoreSchema>) => {
+      '1.1.0': (store: any) => {
         // Future migration example
         // Migrate old settings structure to new one
         const oldSettings = store.get('settings', AppSettingsSchema.parse({}));
@@ -128,6 +128,7 @@ export class SettingsStoreRepository {
       this.store.set('settings', validated);
       this.cache = validated;
       logger.info('All settings updated');
+      return Promise.resolve();
     } catch (error) {
       logger.error('Failed to update all settings', error as Error);
       throw new Error(`Invalid settings: ${(error as Error).message}`);
@@ -369,7 +370,7 @@ export class SettingsStoreRepository {
     key: K,
     callback: (newValue: AppSettings[K], oldValue: AppSettings[K]) => void
   ): () => void {
-    return this.store.onDidChange(`settings.${key}`, callback);
+    return this.store.onDidChange(`settings.${key}` as any, callback as any);
   }
 
   /**

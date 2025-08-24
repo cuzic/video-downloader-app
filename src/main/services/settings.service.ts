@@ -8,6 +8,7 @@ import fs from 'node:fs';
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
 import { SettingsStoreRepository } from './settings-store.repository';
+import { SettingsMigrationService } from './settings-migration.service';
 import { logger } from '@/logging';
 import type {
   AppSettings,
@@ -21,14 +22,43 @@ const execAsync = promisify(exec);
 
 export class SettingsService extends EventEmitter {
   private repository: SettingsStoreRepository;
+  private migrationService: SettingsMigrationService;
   private changeHistory: SettingsChangeEvent[] = [];
   private readonly maxHistorySize = 100;
 
   constructor() {
     super();
     this.repository = new SettingsStoreRepository();
+    this.migrationService = new SettingsMigrationService(this.repository);
     this.setupChangeHandlers();
+    void this.initializeWithMigration();
     logger.info('Settings service initialized');
+  }
+
+  /**
+   * Initialize service with migration check
+   */
+  private async initializeWithMigration(): Promise<void> {
+    try {
+      const needsMigration = await this.migrationService.needsMigration();
+      if (needsMigration) {
+        logger.info('Settings migration required, starting migration...');
+        const result = await this.migrationService.migrate();
+
+        if (result.success) {
+          logger.info('Settings migration completed successfully', result);
+          this.emit('settings:migrated', result);
+        } else {
+          logger.error('Settings migration failed', new Error(result.errors.join(', ')));
+          this.emit('settings:migration-failed', result);
+        }
+      }
+
+      // Clean up old migration backups
+      await this.migrationService.cleanupOldBackups();
+    } catch (error) {
+      logger.error('Failed to initialize settings with migration', error as Error);
+    }
   }
 
   /**
@@ -422,6 +452,7 @@ export class SettingsService extends EventEmitter {
         timeout: (legacySettings.timeout as number) || 30000,
         maxRetries: (legacySettings.retries as number) || 3,
         retryDelay: 2000,
+        headers: {},
       },
       ui: {
         theme: (legacySettings.theme as 'light' | 'dark' | 'system') || 'system',
@@ -436,6 +467,7 @@ export class SettingsService extends EventEmitter {
       advanced: {
         ffmpegPath: (legacySettings.ffmpegPath as string) || 'ffmpeg',
         ffmpegArgs: (legacySettings.ffmpegArgs as string[]) || [],
+        concurrentSegments: 4,
         enableDebugMode: false,
         logLevel: 'info',
         enableTelemetry: true,
@@ -451,5 +483,83 @@ export class SettingsService extends EventEmitter {
     } else {
       throw new Error(`Failed to migrate settings: ${validation.errors.join(', ')}`);
     }
+  }
+
+  /**
+   * Check if settings migration is needed
+   */
+  async needsMigration(): Promise<boolean> {
+    return this.migrationService.needsMigration();
+  }
+
+  /**
+   * Get pending migrations
+   */
+  async getPendingMigrations(): Promise<Array<{ version: string; description: string }>> {
+    const pending = await this.migrationService.getPendingMigrations();
+    return pending.map((m) => ({ version: m.version, description: m.description }));
+  }
+
+  /**
+   * Run settings migration manually
+   */
+  async runMigration(): Promise<{
+    success: boolean;
+    fromVersion: string;
+    toVersion: string;
+    errors: string[];
+  }> {
+    const result = await this.migrationService.migrate();
+    if (result.success) {
+      this.emit('settings:migrated', result);
+    } else {
+      this.emit('settings:migration-failed', result);
+    }
+    return {
+      success: result.success,
+      fromVersion: result.fromVersion,
+      toVersion: result.toVersion,
+      errors: result.errors,
+    };
+  }
+
+  /**
+   * Rollback settings to a specific version
+   */
+  async rollbackSettings(targetVersion: string): Promise<{ success: boolean; errors: string[] }> {
+    const result = await this.migrationService.rollback(targetVersion);
+    if (result.success) {
+      this.emit('settings:rolled-back', result);
+    } else {
+      this.emit('settings:rollback-failed', result);
+    }
+    return {
+      success: result.success,
+      errors: result.errors,
+    };
+  }
+
+  /**
+   * Get migration history
+   */
+  async getMigrationHistory(): Promise<
+    Array<{ version: string; timestamp: string; success: boolean }>
+  > {
+    return this.migrationService.getMigrationHistory();
+  }
+
+  /**
+   * Validate current settings against schema
+   */
+  async validateCurrentSettings(): Promise<{ isValid: boolean; errors: string[] }> {
+    return this.migrationService.validateCurrentSettings();
+  }
+
+  /**
+   * Clean up old migration backups
+   */
+  async cleanupMigrationBackups(maxAgeDays: number = 30): Promise<void> {
+    const maxAge = maxAgeDays * 24 * 60 * 60 * 1000;
+    await this.migrationService.cleanupOldBackups(maxAge);
   }
 }
