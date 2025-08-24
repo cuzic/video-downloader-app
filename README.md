@@ -144,6 +144,12 @@ Kept minimal, only contains:
 - Dependency list
 - Electron builder configuration
 
+## Project Structure
+
+For detailed information about the project organization, see:
+- [Contributing Guide](CONTRIBUTING.md) - Development guidelines and conventions
+- [Directory Structure](docs/DIRECTORY_STRUCTURE.md) - Complete codebase organization
+
 ## Architecture
 
 - Main Process: Database, FFmpeg, download management

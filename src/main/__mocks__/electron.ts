@@ -1,83 +1,88 @@
-/// <reference types="vitest/globals" />
-// Mock file for Electron modules
-// vi is available globally in test environment
+/**
+ * Universal Electron mock that works with both Bun and Vitest
+ */
+import { createMockFn } from '@/test/mock-utils';
 
 export const app = {
-  getPath: vi.fn((name: string) => `/mock/path/${name}`),
-  getVersion: vi.fn(() => '1.0.0-test'),
-  getLocale: vi.fn(() => 'en-US'),
-  getName: vi.fn(() => 'video-downloader'),
-  quit: vi.fn(),
-  on: vi.fn(),
-  once: vi.fn(),
-  whenReady: vi.fn(() => Promise.resolve()),
+  getPath: createMockFn((name: string) => `/mock/path/${name}`),
+  getVersion: createMockFn(() => '1.0.0-test'),
+  getLocale: createMockFn(() => 'en-US'),
+  getName: createMockFn(() => 'video-downloader'),
+  quit: createMockFn(),
+  on: createMockFn(),
+  once: createMockFn(),
+  whenReady: createMockFn(() => Promise.resolve()),
 };
 
 export const BrowserWindow = Object.assign(
-  vi.fn(() => ({
-    loadURL: vi.fn(),
-    loadFile: vi.fn(),
+  createMockFn(() => ({
+    loadURL: createMockFn(),
+    loadFile: createMockFn(),
     webContents: {
-      send: vi.fn(),
-      openDevTools: vi.fn(),
+      send: createMockFn(),
+      openDevTools: createMockFn(),
     },
-    on: vi.fn(),
-    once: vi.fn(),
-    close: vi.fn(),
-    show: vi.fn(),
-    hide: vi.fn(),
-    isVisible: vi.fn(() => true),
+    on: createMockFn(),
+    once: createMockFn(),
+    close: createMockFn(),
+    show: createMockFn(),
+    hide: createMockFn(),
+    isVisible: createMockFn(() => true),
   })),
   {
-    getAllWindows: vi.fn(() => []),
-    fromWebContents: vi.fn(() => null),
+    getAllWindows: createMockFn(() => []),
+    fromWebContents: createMockFn(() => null),
   }
 );
 
 export const ipcMain = {
-  handle: vi.fn(),
-  on: vi.fn(),
-  once: vi.fn(),
-  removeHandler: vi.fn(),
-  removeAllListeners: vi.fn(),
+  handle: createMockFn(),
+  on: createMockFn(),
+  once: createMockFn(),
+  removeHandler: createMockFn(),
+  removeAllListeners: createMockFn(),
 };
 
 export const shell = {
-  openPath: vi.fn(() => Promise.resolve('')),
-  showItemInFolder: vi.fn(),
-  openExternal: vi.fn(() => Promise.resolve()),
-  trashItem: vi.fn(() => Promise.resolve()),
+  openPath: createMockFn(() => Promise.resolve('')),
+  showItemInFolder: createMockFn(),
+  openExternal: createMockFn(() => Promise.resolve()),
+  trashItem: createMockFn(() => Promise.resolve()),
 };
 
 export const dialog = {
-  showOpenDialog: vi.fn(() => Promise.resolve({ canceled: false, filePaths: ['/mock/selected/path'] })),
-  showSaveDialog: vi.fn(() => Promise.resolve({ canceled: false, filePath: '/mock/save/path' })),
-  showMessageBox: vi.fn(() => Promise.resolve({ response: 0 })),
-  showErrorBox: vi.fn(),
+  showOpenDialog: createMockFn(() =>
+    Promise.resolve({ canceled: false, filePaths: ['/mock/selected/path'] })
+  ),
+  showSaveDialog: createMockFn(() =>
+    Promise.resolve({ canceled: false, filePath: '/mock/save/path' })
+  ),
+  showMessageBox: createMockFn(() => Promise.resolve({ response: 0 })),
+  showErrorBox: createMockFn(),
 };
 
 export const net = {
-  request: vi.fn(() => ({
-    on: vi.fn(),
-    end: vi.fn(),
-    write: vi.fn(),
-    abort: vi.fn(),
+  request: createMockFn(() => ({
+    on: createMockFn(),
+    end: createMockFn(),
+    write: createMockFn(),
+    abort: createMockFn(),
   })),
 };
 
 export const session = {
   defaultSession: {
     webRequest: {
-      onBeforeRequest: vi.fn(),
-      onBeforeSendHeaders: vi.fn(),
-      onHeadersReceived: vi.fn(),
+      onBeforeRequest: createMockFn(),
+      onBeforeSendHeaders: createMockFn(),
+      onHeadersReceived: createMockFn(),
     },
-    setPermissionRequestHandler: vi.fn(),
+    setPermissionRequestHandler: createMockFn(),
     protocol: {
-      registerFileProtocol: vi.fn(),
-      unregisterProtocol: vi.fn(),
+      registerFileProtocol: createMockFn(),
+      unregisterProtocol: createMockFn(),
     },
   },
 };
 
-export const IpcMainInvokeEvent = vi.fn();
+export const IpcMainInvokeEvent = createMockFn();
